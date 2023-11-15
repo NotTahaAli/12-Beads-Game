@@ -15,10 +15,11 @@ int main()
         while (true)
         {
             system("cls");
-            cout << "  0 1 2 3 4" << endl;
+            cout << "    0 1 2 3 4" << endl;
+            cout << "--------------" << endl;
             for (int i = 0; i < 5; i++)
             {
-                cout << i << " ";
+                cout << i << " | ";
                 for (int j = 0; j < 5; j++)
                 {
                     int val = getValueAtPosition(j, i);
@@ -43,8 +44,11 @@ int main()
             cout << "Moves: " << endl;
             getMoves(x, y, moves);
             movesPossible = false;
+            cout << "    0 1 2" << endl;
+            cout << "----------" << endl;
             for (int i = 0; i < 3; i++)
             {
+                cout << i << " | ";
                 for (int j = 0; j < 3; j++)
                 {
                     cout << moves[j][i] << " ";
