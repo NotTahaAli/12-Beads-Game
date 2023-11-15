@@ -1,0 +1,11 @@
+*
+
+!*.cpp
+!*.h
+!.gitignore
+!*/
+!CMakeLists.txt
+!websocketpp/**
+!README.md
+
+**/tempCodeRunnerFile.cpp
