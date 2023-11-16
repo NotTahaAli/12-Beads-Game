@@ -3,6 +3,22 @@
 #include <stdlib.h>
 using namespace std;
 
+void clearScreen() {
+    #if __WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void pause() {
+    #if __WIN32
+        system("pause");
+    #else
+        system("read -p \"Press enter to continue...\" s");
+    #endif
+}
+
 int main()
 {
     initGame();
@@ -14,7 +30,7 @@ int main()
     {
         while (true)
         {
-            system("cls");
+            clearScreen();
             cout << "    0 1 2 3 4" << endl;
             cout << "--------------" << endl;
             for (int i = 0; i < 5; i++)
@@ -60,7 +76,7 @@ int main()
             if (!movesPossible)
             {
                 cout << "No Moves Possible for this Bead, Try again with another bead." << endl;
-                system("pause");
+                pause();
                 continue;
             }
             while (true)
@@ -83,7 +99,7 @@ int main()
                 break;
             }
             cout << "Turn could not be played try again." << endl;
-            system("pause");
+            pause();
         };
     }
     cout << "Game Over. " << ((checkVictory() == 1) ? "X" : "O") << " won.";
