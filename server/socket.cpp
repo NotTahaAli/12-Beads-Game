@@ -1,5 +1,7 @@
 #define ASIO_STANDALONE
-#define _WEBSOCKETPP_MINGW_THREAD_
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    #define _WEBSOCKETPP_MINGW_THREAD_
+#endif
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 

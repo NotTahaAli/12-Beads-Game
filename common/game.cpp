@@ -1,8 +1,12 @@
+#include "game.h"
 // 0 means Empty, 1 Means Red, -1 Means Blue
 int board[5][5] = {{0}};
 
 // Coordinates of Last played Turn (-1,-1) means not counting.
-int lastTurn[2] = {-1,-1};
+Coordinates lastTurn = {
+    -1, // X Coordinate
+    -1, // Y Coordinate
+};
 
 // 1 Means Red, -1 Means Blue
 int turn = -1;
@@ -13,8 +17,7 @@ int getTurn() {
 }
 
 void resetLastTurn() {
-    lastTurn[0] = -1;
-    lastTurn[1] = -1;
+    lastTurn = {-1,-1};
 }
 
 void nextTurn() {
@@ -59,8 +62,8 @@ void getMoves(int x, int y, int moves[3][3]) {
     int color = getValueAtPosition(x,y);
     int colorAtPos;
     int i,j;
-    bool killOnly = lastTurn[0] != -1;
-    if (turn != color || (killOnly && (lastTurn[0] != x || lastTurn[1] != y))) {
+    bool killOnly = (lastTurn.x != -1);
+    if (turn != color || (killOnly && (lastTurn.x != x || lastTurn.y != y))) {
         for (i = 0; i < 9; i++) {
             moves[i/3][i%3] = 0;
         }
@@ -81,13 +84,11 @@ void getMoves(int x, int y, int moves[3][3]) {
     }
 }
 
-void remove(int x, int y) {
-    board[x][y] = 0;
-}
-
-void move(int x1, int y1, int x2, int y2) {
-    if (x2 != -1) board[x2][y2] = board[x1][y1];
-    remove(x1,y1);
+void executeMotion(Motion move) {
+    if (move.to.x >= 0 && move.to.y < 5) {
+        board[move.to.x][move.to.y] = board[move.from.x][move.from.y];
+    }
+    board[move.from.x][move.from.y] = 0;
 }
 
 // 0 is Turn not played
@@ -101,18 +102,17 @@ int playTurn(int x, int y, int x2, int y2) {
     getMoves(x,y,possibleMoves);
     if (possibleMoves[x2][y2] == 0) return 0;
     if (possibleMoves[x2][y2] == 1) {
-        move(x,y,x+x2-1,y+y2-1);
+        executeMotion({{x,y},{x+x2-1,y+y2-1}});
         nextTurn();
         return 2;
     }
     x2--;
     y2--;
-    move(x,y,x+(2*x2),y+(2*y2));
-    remove(x+x2,y+y2);
+    executeMotion({{x,y},{x+(2*x2),y+(2*y2)}});
+    executeMotion({{x+x2,y+y2},{-1,-1}});
     x += 2*x2;
     y += 2*y2;
-    lastTurn[0] = x;
-    lastTurn[1] = y;
+    lastTurn = {x,y};
     getMoves(x,y,possibleMoves);
     for (int i = 0; i < 9; i++) {
         if (possibleMoves[i%3][i/3] == 2) {

@@ -1,3 +1,13 @@
+struct Coordinates {
+    int x;
+    int y;
+};
+
+// To should be {x: -1, y: -1} to remove.
+struct Motion {
+    Coordinates from, to;
+};
+
 int getTurn();
 void initGame();
 int checkVictory();

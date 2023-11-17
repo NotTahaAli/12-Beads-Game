@@ -1,10 +1,10 @@
-#include "server/game.h"
+#include "common/game.h"
 #include <iostream>
 #include <stdlib.h>
 using namespace std;
 
 void clearScreen() {
-    #if __WIN32
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
         system("cls");
     #else
         system("clear");
@@ -12,7 +12,7 @@ void clearScreen() {
 }
 
 void pause() {
-    #if __WIN32
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
         system("pause");
     #else
         system("read -p \"Press enter to continue...\" s");
