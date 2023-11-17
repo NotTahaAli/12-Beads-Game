@@ -4,8 +4,7 @@
 !*.h
 !.gitignore
 !*/
-!CMakeLists.txt
-!websocketpp/**
+!assets/**
 !README.md
 
 **/tempCodeRunnerFile.cpp
