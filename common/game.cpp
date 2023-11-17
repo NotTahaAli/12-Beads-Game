@@ -46,10 +46,10 @@ int checkVictory() {
 }
 
 // 0 means Empty, 1 Means Red, -1 Means Blue
-int getValueAtPosition(int x, int y) {
-    if (x < 0 || x >= 5) return -2; // Error X not in Range;
-    if (y < 0 || y >= 5) return -3; // Error Y not in Range;
-    return board[x][y];
+int getValueAtPosition(Coordinates pos) {
+    if (pos.x < 0 || pos.x >= 5) return -2; // Error X not in Range;
+    if (pos.y < 0 || pos.y >= 5) return -3; // Error Y not in Range;
+    return board[pos.x][pos.y];
 }
 
 // 0 means no move, 1 means single move, 2 means take and move 2 steps.
@@ -58,12 +58,12 @@ int getValueAtPosition(int x, int y) {
 // 0 O O O
 // 1 O X O
 // 2 O O O
-void getMoves(int x, int y, int moves[3][3]) {
-    int color = getValueAtPosition(x,y);
+void getMoves(Coordinates pos, int moves[3][3]) {
+    int color = getValueAtPosition(pos);
     int colorAtPos;
     int i,j;
     bool killOnly = (lastTurn.x != -1);
-    if (turn != color || (killOnly && (lastTurn.x != x || lastTurn.y != y))) {
+    if (turn != color || (killOnly && (lastTurn.x != pos.x || lastTurn.y != pos.y))) {
         for (i = 0; i < 9; i++) {
             moves[i/3][i%3] = 0;
         }
@@ -72,12 +72,12 @@ void getMoves(int x, int y, int moves[3][3]) {
     int move;
     for (i = -1; i <= 1; i++) {
         for (j = -1; j <= 1; j++) {
-            if ((y*5+x)%2 == 1 && i*j != 0) move = 0;
+            if ((pos.y*5+pos.x)%2 == 1 && i*j != 0) move = 0;
             else {
-                colorAtPos = getValueAtPosition(x+j,y+i);
+                colorAtPos = getValueAtPosition({pos.x+j,pos.y+i});
                 move = 0;
                 if (colorAtPos == 0) move = ((killOnly) ? 0 : 1);
-                else if (colorAtPos == -color && getValueAtPosition(x+(2*j),y+(2*i)) == 0) move = 2;
+                else if (colorAtPos == -color && getValueAtPosition({pos.x+(2*j),pos.y+(2*i)}) == 0) move = 2;
             }
             moves[j+1][i+1] = move;
         }
@@ -95,25 +95,25 @@ void executeMotion(Motion move) {
 // 1 is Turn played current person will continue.
 // 2 is Turn played other person will play next turn
 // 3 is Game Over. Current player won.
-// x2 and y2 are the indexes from getMoves.
-int playTurn(int x, int y, int x2, int y2) {
-    if (x2 < 0 || x2 >= 3 || y2 < 0 || y2 >= 3) return 0;
+// move is coordinate form of indexes from getMoves.
+int playTurn(Coordinates pos, Coordinates move) {
+    if (move.x < 0 || move.x >= 3 || move.y < 0 || move.y >= 3) return 0;
     int possibleMoves[3][3];
-    getMoves(x,y,possibleMoves);
-    if (possibleMoves[x2][y2] == 0) return 0;
-    if (possibleMoves[x2][y2] == 1) {
-        executeMotion({{x,y},{x+x2-1,y+y2-1}});
+    getMoves(pos,possibleMoves);
+    if (possibleMoves[move.x][move.y] == 0) return 0;
+    if (possibleMoves[move.x][move.y] == 1) {
+        executeMotion({pos,{pos.x+move.x-1,pos.y+move.y-1}});
         nextTurn();
         return 2;
     }
-    x2--;
-    y2--;
-    executeMotion({{x,y},{x+(2*x2),y+(2*y2)}});
-    executeMotion({{x+x2,y+y2},{-1,-1}});
-    x += 2*x2;
-    y += 2*y2;
-    lastTurn = {x,y};
-    getMoves(x,y,possibleMoves);
+    move.x--;
+    move.y--;
+    executeMotion({pos,{pos.x+(2*move.x),pos.y+(2*move.y)}});
+    executeMotion({{pos.x+move.x,pos.y+move.y},{-1,-1}});
+    pos.x += 2*move.x;
+    pos.y += 2*move.y;
+    lastTurn = pos;
+    getMoves(pos,possibleMoves);
     for (int i = 0; i < 9; i++) {
         if (possibleMoves[i%3][i/3] == 2) {
             if (checkVictory() == 0) return 1;

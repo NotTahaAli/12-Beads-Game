@@ -23,7 +23,8 @@ int main()
 {
     initGame();
     int turn;
-    int x, y, moves[3][3], x2, y2;
+    Coordinates pos, move;
+    int moves[3][3];
     bool movesPossible = false;
     int turnPlayed = 0;
     while (turnPlayed != 3)
@@ -38,7 +39,7 @@ int main()
                 cout << i << " | ";
                 for (int j = 0; j < 5; j++)
                 {
-                    int val = getValueAtPosition(j, i);
+                    int val = getValueAtPosition({j, i});
                     cout << ((val == 0) ? " " : ((val == 1) ? "X" : "O")) << " ";
                 }
                 cout << endl;
@@ -48,7 +49,7 @@ int main()
             while (true)
             {
                 cout << "Enter Coordinates of Bead: ";
-                cin >> x >> y;
+                cin >> pos.x >> pos.y;
                 if (cin.fail())
                 {
                     cin.clear();
@@ -58,7 +59,7 @@ int main()
                     break;
             }
             cout << "Moves: " << endl;
-            getMoves(x, y, moves);
+            getMoves(pos, moves);
             movesPossible = false;
             cout << "    0 1 2" << endl;
             cout << "----------" << endl;
@@ -82,7 +83,7 @@ int main()
             while (true)
             {
                 cout << "Enter Move Coordinates [0-2, 0-2] ([-1 -1] for change bead) : ";
-                cin >> x2 >> y2;
+                cin >> move.x >> move.y;
                 if (cin.fail())
                 {
                     cin.clear();
@@ -91,9 +92,9 @@ int main()
                 else
                     break;
             }
-            if (x2 == -1 && y2 == -1)
+            if (move.x == -1 && move.y == -1)
                 break;
-            turnPlayed = playTurn(x, y, x2, y2);
+            turnPlayed = playTurn(pos, move);
             if (turnPlayed != 0)
             {
                 break;
