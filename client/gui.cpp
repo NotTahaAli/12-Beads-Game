@@ -21,7 +21,6 @@ int main()
     int minDimension = 0.9 * ((windowMode.width < windowMode.height) ? windowMode.width : windowMode.height);
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
-    moveBead(board.beads[1][1],{2,2});
 
     while (window.isOpen())
     {
