@@ -22,15 +22,14 @@ void highlightPosition(sf::RenderWindow &window, sf::Vector2f position, sf::Vect
 int main()
 {
     sf::VideoMode windowMode = sf::VideoMode::getDesktopMode();
-    sf::RenderWindow window(windowMode, "12 Beads Game", sf::Style::None);
+    sf::RenderWindow window(windowMode, "12 Beads Game", sf::Style::Default);
     window.setFramerateLimit(60);
     setIcon("./assets/redBead.png", window);
 
     Board board = setUpBoard();
-    int minDimension = 0.9 * ((windowMode.width < windowMode.height) ? windowMode.width : windowMode.height);
+    int minDimension = 0.9 * ((window.getSize().x < window.getSize().y) ? window.getSize().x : window.getSize().y);
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
-    moveBead(board.beads[1][1],{2,2});
 
     int possibleMoves[3][3];
 
@@ -41,8 +40,7 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-            
-            checkClick(board, event);
+            else checkClick(board, event);
         }
 
         window.clear();

@@ -1,56 +1,45 @@
 #include "game.h"
-// 0 means Empty, 1 Means Red, -1 Means Blue
-int board[5][5] = {{0}};
-
-// Coordinates of Last played Turn (-1,-1) means not counting.
-Coordinates lastTurn = {
-    -1, // X Coordinate
-    -1, // Y Coordinate
-};
 
 // 1 Means Red, -1 Means Blue
-int turn = -1;
-
-// 1 Means Red, -1 Means Blue
-int getTurn() {
-    return turn;
+int getTurn(gameState &game) {
+    return game.turn;
 }
 
-void resetLastTurn() {
-    lastTurn = {-1,-1};
+void resetLastTurn(gameState &game) {
+    game.lastTurn = {-1,-1};
 }
 
-void nextTurn() {
-    turn *= -1;
-    resetLastTurn();
+void nextTurn(gameState &game) {
+    game.turn *= -1;
+    resetLastTurn(game);
 }
 
-void initGame() {
-    turn = -1;
-    resetLastTurn();
+gameState initGame() {
+    gameState game;
     for (int i = 0; i < 25; i++) {
         // 0 means Empty, 1 Means Red, -1 Means Blue
-        board[i%5][i/5] = ((i < 12) ? 1 : ((i > 12) ? -1 : 0));
+        game.board[i%5][i/5] = ((i < 12) ? 1 : ((i > 12) ? -1 : 0));
     }
+    return game;
 }
 
 // 0 means game is continuing, 1 means Red won, -1 means Blue won
-int checkVictory() {
+int checkVictory(gameState &game) {
     bool blueFound = false;
     bool redFound = false;
     for (int i = 0; i < 25; i++) {
-        if (board[i%5][i/5] == -1) blueFound = true;
-        else if (board[i%5][i/5] == 1) redFound = true;
+        if (game.board[i%5][i/5] == -1) blueFound = true;
+        else if (game.board[i%5][i/5] == 1) redFound = true;
         if (blueFound && redFound) return 0;
     }
     return ((blueFound) ? -1 : 1);
 }
 
 // 0 means Empty, 1 Means Red, -1 Means Blue
-int getValueAtPosition(Coordinates pos) {
+int getValueAtPosition(gameState &game, Coordinates pos) {
     if (pos.x < 0 || pos.x >= 5) return -2; // Error X not in Range;
     if (pos.y < 0 || pos.y >= 5) return -3; // Error Y not in Range;
-    return board[pos.x][pos.y];
+    return game.board[pos.x][pos.y];
 }
 
 // 0 means no move, 1 means single move, 2 means take and move 2 steps.
@@ -59,12 +48,12 @@ int getValueAtPosition(Coordinates pos) {
 // 0 O O O
 // 1 O X O
 // 2 O O O
-void getMoves(Coordinates pos, int moves[3][3]) {
-    int color = getValueAtPosition(pos);
+void getMoves(gameState &game, Coordinates pos, int moves[3][3]) {
+    int color = getValueAtPosition(game,pos);
     int colorAtPos;
     int i,j;
-    bool killOnly = (lastTurn.x != -1);
-    if (turn != color || (killOnly && (lastTurn.x != pos.x || lastTurn.y != pos.y))) {
+    bool killOnly = (game.lastTurn.x != -1);
+    if (game.turn != color || (killOnly && (game.lastTurn.x != pos.x || game.lastTurn.y != pos.y))) {
         for (i = 0; i < 9; i++) {
             moves[i/3][i%3] = 0;
         }
@@ -75,21 +64,21 @@ void getMoves(Coordinates pos, int moves[3][3]) {
         for (j = -1; j <= 1; j++) {
             if ((pos.y*5+pos.x)%2 == 1 && i*j != 0) move = 0;
             else {
-                colorAtPos = getValueAtPosition({pos.x+j,pos.y+i});
+                colorAtPos = getValueAtPosition(game, {pos.x+j,pos.y+i});
                 move = 0;
                 if (colorAtPos == 0) move = ((killOnly) ? 0 : 1);
-                else if (colorAtPos == -color && getValueAtPosition({pos.x+(2*j),pos.y+(2*i)}) == 0) move = 2;
+                else if (colorAtPos == -color && getValueAtPosition(game, {pos.x+(2*j),pos.y+(2*i)}) == 0) move = 2;
             }
             moves[j+1][i+1] = move;
         }
     }
 }
 
-void executeMotion(Motion move) {
+void executeMotion(gameState &game, Motion move) {
     if (move.to.x >= 0 && move.to.y < 5) {
-        board[move.to.x][move.to.y] = board[move.from.x][move.from.y];
+        game.board[move.to.x][move.to.y] = game.board[move.from.x][move.from.y];
     }
-    board[move.from.x][move.from.y] = 0;
+    game.board[move.from.x][move.from.y] = 0;
 }
 
 // 0 is Turn not played
@@ -97,38 +86,38 @@ void executeMotion(Motion move) {
 // 2 is Turn played other person will play next turn
 // 3 is Game Over. Current player won.
 // move is coordinate form of indexes from getMoves.
-turnData playTurn(Coordinates pos, Coordinates move) {
+turnData playTurn(gameState &game, Coordinates pos, Coordinates move) {
     if (move.x < 0 || move.x >= 3 || move.y < 0 || move.y >= 3) return {0};
     int possibleMoves[3][3];
     Motion moves[2];
-    getMoves(pos,possibleMoves);
+    getMoves(game, pos,possibleMoves);
     if (possibleMoves[move.x][move.y] == 0) return {0};
     if (possibleMoves[move.x][move.y] == 1) {
         moves[0] = {pos,{pos.x+move.x-1,pos.y+move.y-1}};
         moves[1] = {{-1,-1},{-1,-1}};
-        executeMotion(moves[0]);
-        nextTurn();
+        executeMotion(game, moves[0]);
+        nextTurn(game);
         return {2, moves[0], moves[1]};
     }
     move.x--;
     move.y--;
     moves[0] = {pos,{pos.x+(2*move.x),pos.y+(2*move.y)}};
     moves[1] = {{pos.x+move.x,pos.y+move.y},{-1,-1}};
-    executeMotion(moves[0]);
-    executeMotion(moves[1]);
+    executeMotion(game, moves[0]);
+    executeMotion(game, moves[1]);
     pos.x += 2*move.x;
     pos.y += 2*move.y;
-    lastTurn = pos;
-    getMoves(pos,possibleMoves);
-    if (checkVictory() != 0) {
-        turn = 0;
+    game.lastTurn = pos;
+    getMoves(game, pos,possibleMoves);
+    if (checkVictory(game) != 0) {
+        game.turn = 0;
         return {3, moves[0], moves[1]};
     }
     for (int i = 0; i < 9; i++) {
         if (possibleMoves[i%3][i/3] == 2) {
-            if (checkVictory() == 0) return {1, moves[0], moves[1]};;
+            if (checkVictory(game) == 0) return {1, moves[0], moves[1]};;
         }
     }
-    nextTurn();
+    nextTurn(game);
     return {2, moves[0], moves[1]};
 }

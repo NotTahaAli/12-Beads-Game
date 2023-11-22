@@ -18,9 +18,23 @@ struct turnData {
     Motion remove;
 };
 
-int getTurn();
-void initGame();
-int checkVictory();
-int getValueAtPosition(Coordinates pos);
-void getMoves(Coordinates pos, int moves[3][3]);
-turnData playTurn(Coordinates pos, Coordinates move);
+struct gameState {
+    // 0 means Empty, 1 Means Red, -1 Means Blue
+    int board[5][5] = {{0}};
+
+    // Coordinates of Last played Turn (-1,-1) means not counting.
+    Coordinates lastTurn = {
+        -1, // X Coordinate
+        -1, // Y Coordinate
+    };
+
+    // 1 Means Red, -1 Means Blue
+    int turn = -1;
+};
+
+int getTurn(gameState &game);
+gameState initGame();
+int checkVictory(gameState &game);
+int getValueAtPosition(gameState &game, Coordinates pos);
+void getMoves(gameState &game, Coordinates pos, int moves[3][3]);
+turnData playTurn(gameState &game, Coordinates pos, Coordinates move);

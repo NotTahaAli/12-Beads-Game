@@ -21,7 +21,7 @@ void pause() {
 
 int main()
 {
-    initGame();
+    gameState game = initGame();
     int turn;
     Coordinates pos, move;
     int moves[3][3];
@@ -39,12 +39,12 @@ int main()
                 cout << i << " | ";
                 for (int j = 0; j < 5; j++)
                 {
-                    int val = getValueAtPosition({j, i});
+                    int val = getValueAtPosition(game, {j, i});
                     cout << ((val == 0) ? " " : ((val == 1) ? "X" : "O")) << " ";
                 }
                 cout << endl;
             }
-            turn = getTurn();
+            turn = getTurn(game);
             cout << "Current Turn: " << ((turn == 0) ? "Game Ended" : ((turn == 1) ? "X" : "O")) << endl;
             while (true)
             {
@@ -59,7 +59,7 @@ int main()
                     break;
             }
             cout << "Moves: " << endl;
-            getMoves(pos, moves);
+            getMoves(game, pos, moves);
             movesPossible = false;
             cout << "    0 1 2" << endl;
             cout << "----------" << endl;
@@ -94,7 +94,7 @@ int main()
             }
             if (move.x == -1 && move.y == -1)
                 break;
-            turnPlayed = playTurn(pos, move).status;
+            turnPlayed = playTurn(game, pos, move).status;
             if (turnPlayed != 0)
             {
                 break;
@@ -103,5 +103,5 @@ int main()
             pause();
         };
     }
-    cout << "Game Over. " << ((checkVictory() == 1) ? "X" : "O") << " won.";
+    cout << "Game Over. " << ((checkVictory(game) == 1) ? "X" : "O") << " won.";
 }

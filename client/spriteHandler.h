@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include "../common/game.h"
 
 struct Bead {
     sf::Sprite sprite;
@@ -9,16 +10,18 @@ struct Bead {
 
 struct Highlight {
     sf::Sprite sprite;
-    sf::Vector2u move;
+    sf::Vector2i move = {-1, -1};
 };
 
 struct Board {
     sf::Sprite sprite;
     Bead beads[5][5];
     Highlight highlights[5][5];
+    gameState game;
 };
 
 void moveBead(Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 60);
+void removeBead(Bead &bead, unsigned int frames = 60);
 
 Board setUpBoard();
 void drawBoard(sf::RenderWindow &window, Board &board);
