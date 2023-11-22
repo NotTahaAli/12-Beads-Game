@@ -22,7 +22,7 @@ void highlightPosition(sf::RenderWindow &window, sf::Vector2f position, sf::Vect
 int main()
 {
     sf::VideoMode windowMode = sf::VideoMode::getDesktopMode();
-    sf::RenderWindow window(windowMode, "12 Beads Game", sf::Style::Default);
+    sf::RenderWindow window(windowMode, "12 Beads Game", sf::Style::None);
     window.setFramerateLimit(60);
     setIcon("./assets/redBead.png", window);
 
@@ -40,7 +40,10 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-            else checkClick(board, event);
+            if (event.type == sf::Event::MouseMoved)
+                checkHover(window, board, event.mouseMove);
+            else if (event.type == sf::Event::MouseButtonPressed)
+                checkClick(board, event.mouseButton);
         }
 
         window.clear();

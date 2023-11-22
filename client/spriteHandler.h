@@ -11,6 +11,7 @@ struct Bead {
 struct Highlight {
     sf::Sprite sprite;
     sf::Vector2i move = {-1, -1};
+    sf::Vector2i base = {-1, -1};
 };
 
 struct Board {
@@ -20,11 +21,12 @@ struct Board {
     gameState game;
 };
 
-void moveBead(Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 60);
-void removeBead(Bead &bead, unsigned int frames = 60);
+void moveBead(Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 15);
+void removeBead(Bead &bead, unsigned int frames = 15);
 
 Board setUpBoard();
 void drawBoard(sf::RenderWindow &window, Board &board);
 void setBoardSize(Board &board, sf::Vector2i SizeInPixels);
 void centerBoard(Board &board, sf::RenderWindow &window);
-void checkClick(Board &board, sf::Event event);
+void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton);
+void checkHover(sf::RenderWindow &window, Board &board, sf::Event::MouseMoveEvent mouseMove);
