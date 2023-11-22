@@ -94,7 +94,7 @@ int main()
             }
             if (move.x == -1 && move.y == -1)
                 break;
-            turnPlayed = playTurn(pos, move);
+            turnPlayed = playTurn(pos, move).status;
             if (turnPlayed != 0)
             {
                 break;

@@ -29,6 +29,7 @@ void initGame() {
     turn = -1;
     resetLastTurn();
     for (int i = 0; i < 25; i++) {
+        // 0 means Empty, 1 Means Red, -1 Means Blue
         board[i%5][i/5] = ((i < 12) ? 1 : ((i > 12) ? -1 : 0));
     }
 }
@@ -96,31 +97,38 @@ void executeMotion(Motion move) {
 // 2 is Turn played other person will play next turn
 // 3 is Game Over. Current player won.
 // move is coordinate form of indexes from getMoves.
-int playTurn(Coordinates pos, Coordinates move) {
-    if (move.x < 0 || move.x >= 3 || move.y < 0 || move.y >= 3) return 0;
+turnData playTurn(Coordinates pos, Coordinates move) {
+    if (move.x < 0 || move.x >= 3 || move.y < 0 || move.y >= 3) return {0};
     int possibleMoves[3][3];
+    Motion moves[2];
     getMoves(pos,possibleMoves);
-    if (possibleMoves[move.x][move.y] == 0) return 0;
+    if (possibleMoves[move.x][move.y] == 0) return {0};
     if (possibleMoves[move.x][move.y] == 1) {
-        executeMotion({pos,{pos.x+move.x-1,pos.y+move.y-1}});
+        moves[0] = {pos,{pos.x+move.x-1,pos.y+move.y-1}};
+        moves[1] = {{-1,-1},{-1,-1}};
+        executeMotion(moves[0]);
         nextTurn();
-        return 2;
+        return {2, moves[0], moves[1]};
     }
     move.x--;
     move.y--;
-    executeMotion({pos,{pos.x+(2*move.x),pos.y+(2*move.y)}});
-    executeMotion({{pos.x+move.x,pos.y+move.y},{-1,-1}});
+    moves[0] = {pos,{pos.x+(2*move.x),pos.y+(2*move.y)}};
+    moves[1] = {{pos.x+move.x,pos.y+move.y},{-1,-1}};
+    executeMotion(moves[0]);
+    executeMotion(moves[1]);
     pos.x += 2*move.x;
     pos.y += 2*move.y;
     lastTurn = pos;
     getMoves(pos,possibleMoves);
+    if (checkVictory() != 0) {
+        turn = 0;
+        return {3, moves[0], moves[1]};
+    }
     for (int i = 0; i < 9; i++) {
         if (possibleMoves[i%3][i/3] == 2) {
-            if (checkVictory() == 0) return 1;
-            turn = 0;
-            return 3;
+            if (checkVictory() == 0) return {1, moves[0], moves[1]};;
         }
     }
     nextTurn();
-    return 2;
+    return {2, moves[0], moves[1]};
 }

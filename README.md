@@ -15,15 +15,15 @@
 ### Windows
 ```sh
 del main.exe *.o
-g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/beads.cpp
+g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/spriteHandler.cpp
 g++ -I "<Home Folder with websocketpp and mingw-threads>" -I "<asio folder>/include" -c server/socket.cpp
 g++ -c common/game.cpp
-g++ game.o gui.o beads.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system
+g++ game.o gui.o spriteHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system
 ./main
 ```
 ### Linux
 ```sh
-g++ common/game.cpp client/gui.cpp client/beads.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+g++ common/game.cpp client/gui.cpp client/spriteHandler.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
 ./main
 ```
 
