@@ -1,5 +1,6 @@
 #include "spriteHandler.h"
 #include "../common/game.h"
+#include <cmath>
 
 // Define Texture Variables
 sf::Texture redBeadTexture;
@@ -11,17 +12,15 @@ sf::Vector2u redBeadTextureSize;
 sf::Vector2u blueBeadTextureSize;
 sf::Vector2u boardTextureSize;
 
+const float boardDivisions = 10;
+
 #include <iostream>
 using namespace std;
-
-int floor (double num) {
-    return ((num < 0) ? num-1 : num);
-}
 
 sf::Vector2f getGridBoxSize(Board &board)
 {
     sf::Vector2f boardScale = board.sprite.getScale();
-    return sf::Vector2f({boardScale.x * boardTextureSize.x, boardScale.y * boardTextureSize.y}) / 10.f;
+    return sf::Vector2f({boardScale.x * boardTextureSize.x, boardScale.y * boardTextureSize.y}) / boardDivisions;
 };
 
 // Get textures from image files
@@ -100,9 +99,9 @@ void updateBeadPosition(Board &board, Bead &bead)
     }
 
     sf::Vector2f gridBoxSize = getGridBoxSize(board);
-    sf::Vector2f gap = gridBoxSize*5.f / 6.f + gridBoxSize;
+    sf::Vector2f gap = gridBoxSize*(boardDivisions-5) / 6.f + gridBoxSize;
     sf::Vector2f boardPos = board.sprite.getPosition();
-    boardPos += gridBoxSize*5.f / 6.f;
+    boardPos += gridBoxSize*(boardDivisions-5) / 6.f;
     sf::Vector2i textureSize = bead.sprite.getTextureRect().getSize();
     bead.sprite.setPosition({boardPos.x + gap.x * bead.gridPos.x, boardPos.y + gap.y * bead.gridPos.y});
     bead.sprite.setScale({gridBoxSize.x / textureSize.x, gridBoxSize.y / textureSize.y});
@@ -130,7 +129,7 @@ void setBoardSize(Board &board, sf::Vector2i SizeInPixels)
 
 void centerBoard(Board &board, sf::RenderWindow &window)
 {
-    sf::Vector2f boardSize = getGridBoxSize(board) * 10.0f;
+    sf::Vector2f boardSize = getGridBoxSize(board) * boardDivisions;
     board.sprite.setPosition({(window.getSize().x - boardSize.x) / 2.f, (window.getSize().y - boardSize.y) / 2.f});
 }
 
@@ -138,16 +137,16 @@ void checkClick(Board &board, sf::Event event) {
     if (event.type == sf::Event::MouseButtonPressed) {
         if (event.mouseButton.button == 0) {
             sf::Vector2f gridBoxSize = getGridBoxSize(board);
-            sf::Vector2f gap = gridBoxSize*5.f / 6.f + gridBoxSize;
+            sf::Vector2f gap = gridBoxSize*(boardDivisions-5) / 6.f + gridBoxSize;
             sf::Vector2f boardPos = board.sprite.getPosition();
             sf::Vector2i gridPos = {floor((event.mouseButton.x - boardPos.x)/gap.x), floor((event.mouseButton.y - boardPos.y)/gap.y)};
-            boardPos += gridBoxSize*5.f / 6.f;
+            boardPos += gridBoxSize*(boardDivisions-5) / 6.f;
             if (gridPos.x >= 0 && gridPos.y >= 0 && gridPos.x < 5 && gridPos.y < 5) {
                 sf::Vector2f Center = {boardPos.x + gap.x * gridPos.x, boardPos.y + gap.y * gridPos.y};
                 Center += gridBoxSize / 2.f;
-                // Checking If Click Inside Circle
-                if (((event.mouseButton.x - Center.x)*(event.mouseButton.x - Center.x))/((gridBoxSize.x / 2.f)*(gridBoxSize.x / 2.f))
-                + ((event.mouseButton.y - Center.y)*(event.mouseButton.y - Center.y))/((gridBoxSize.y / 2.f)*(gridBoxSize.y / 2.f)) <= 1) {
+                // Checking If Click Inside Ellipse
+                if (pow(event.mouseButton.x - Center.x,2)/pow(gridBoxSize.x / 2,2) +
+                    pow(event.mouseButton.y - Center.y,2)/pow(gridBoxSize.y / 2,2) <= 1) {
                     // Check if Highlight. If Highlight then try the move, else check if bead and show highlights.
                     cout << gridPos.x << " " << gridPos.y << endl;
                 }
