@@ -40,7 +40,12 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-            if (event.type == sf::Event::MouseMoved)
+            else if (event.type == sf::Event::KeyPressed) {
+                if (event.key.control && event.key.code == sf::Keyboard::Q) {
+                    window.close();
+                }
+            }
+            else if (event.type == sf::Event::MouseMoved)
                 checkHover(window, board, event.mouseMove);
             else if (event.type == sf::Event::MouseButtonPressed)
                 checkClick(board, event.mouseButton);
@@ -52,6 +57,8 @@ int main()
 
         window.display();
     }
+
+    saveGameState(board.game);
 
     return 0;
 }

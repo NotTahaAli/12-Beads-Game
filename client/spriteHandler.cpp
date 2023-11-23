@@ -123,6 +123,7 @@ void updateBeadPosition(Board &board, Bead &bead)
 
 void drawBoard(sf::RenderWindow &window, Board &board)
 {
+    if (!board.visible) return;
     window.draw(board.sprite);
     for (int x = 0; x < 5; x++)
     {
@@ -183,16 +184,17 @@ bool isHighlightValid(Board &board, sf::Vector2i gridPos)
 bool isBeadClickValid(Board &board, sf::Vector2i gridPos)
 {
     int turn = getTurn(board.game);
-    return (turn != 0 && board.game.lastTurn.x == -1 && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == turn);
+    return (turn != 0 && (board.game.lastTurn.x == -1 || (board.game.lastTurn.x == gridPos.x && board.game.lastTurn.y == gridPos.y)) && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == turn);
 }
 
 void checkHover(sf::RenderWindow &window, Board &board, sf::Event::MouseMoveEvent mouseMove)
 {
+    cursor.loadFromSystem(sf::Cursor::Arrow);
+    if (!board.blocked) {
     sf::Vector2i gridPos = getCircularGridPos(board, {mouseMove.x, mouseMove.y});
     if (gridPos.x >= 0 && (isHighlightValid(board, gridPos) || isBeadClickValid(board, gridPos)))
         cursor.loadFromSystem(sf::Cursor::Hand);
-    else
-        cursor.loadFromSystem(sf::Cursor::Arrow);
+    };
     window.setMouseCursor(cursor);
 }
 
@@ -260,7 +262,7 @@ void attemptTurnPlay(Board &board, sf::Vector2i gridPos) {
     turnData tdata = playTurn(board.game, {highlight.base.x, highlight.base.y}, {highlight.move.x, highlight.move.y});
     resetHighlights(board);
     if (tdata.status == 0) {
-        // Error Playing Move
+        // show popup of move error.
         return;
     }
     moveBead(board.beads[tdata.move.from.x][tdata.move.from.y], {tdata.move.to.x, tdata.move.to.y});
@@ -270,12 +272,10 @@ void attemptTurnPlay(Board &board, sf::Vector2i gridPos) {
         removeBead(board.beads[tdata.remove.from.x][tdata.remove.from.y]);
     }
     if (tdata.status == 3) {
-        // Game Ended
+        // Show popup of game over.
+        board.blocked = true;
     } else if (tdata.status == 1) {
-        // Continue
         renderHighlights(board, {tdata.move.to.x, tdata.move.to.y});
-    } else {
-        // Next Turn
     }
 }
 
@@ -283,15 +283,17 @@ void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton)
 {
     if (mouseButton.button == 0)
     {
-        sf::Vector2i gridPos = getCircularGridPos(board, {mouseButton.x, mouseButton.y});
-        if (gridPos.x >= 0)
-        {
-            if (isHighlightValid(board, gridPos))
+        if (!board.blocked) {
+            sf::Vector2i gridPos = getCircularGridPos(board, {mouseButton.x, mouseButton.y});
+            if (gridPos.x >= 0)
             {
-                attemptTurnPlay(board,gridPos);
+                if (isHighlightValid(board, gridPos))
+                {
+                    attemptTurnPlay(board,gridPos);
+                }
+                else if (isBeadClickValid(board, gridPos))
+                    renderHighlights(board, gridPos);
             }
-            else if (isBeadClickValid(board, gridPos))
-                renderHighlights(board, gridPos);
         }
     }
 }

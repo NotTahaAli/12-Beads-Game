@@ -19,6 +19,8 @@ struct Board {
     Bead beads[5][5];
     Highlight highlights[5][5];
     gameState game;
+    bool visible = true;
+    bool blocked = false;
 };
 
 void moveBead(Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 15);

@@ -30,11 +30,15 @@ struct gameState {
 
     // 1 Means Red, -1 Means Blue
     int turn = -1;
+
+    bool gameOver = true;
 };
 
 int getTurn(gameState &game);
-gameState initGame();
+gameState initGame(bool loadPrevious = true);
 int checkVictory(gameState &game);
 int getValueAtPosition(gameState &game, Coordinates pos);
 void getMoves(gameState &game, Coordinates pos, int moves[3][3]);
 turnData playTurn(gameState &game, Coordinates pos, Coordinates move);
+
+void saveGameState(gameState game);

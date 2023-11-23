@@ -1,4 +1,5 @@
 #include "game.h"
+#include <fstream>
 
 // 1 Means Red, -1 Means Blue
 int getTurn(gameState &game) {
@@ -14,11 +15,29 @@ void nextTurn(gameState &game) {
     resetLastTurn(game);
 }
 
-gameState initGame() {
+void saveGameState(gameState game) {
+    std::ofstream outFile("./data/game.dat");
+    if (!game.gameOver) {
+        outFile.write((char *) &game, sizeof(gameState));
+    } else {
+        outFile.write("",0);
+    }
+    outFile.close();
+}
+
+gameState initGame(bool loadPrevious) {
     gameState game;
-    for (int i = 0; i < 25; i++) {
-        // 0 means Empty, 1 Means Red, -1 Means Blue
-        game.board[i%5][i/5] = ((i < 12) ? 1 : ((i > 12) ? -1 : 0));
+    std::ifstream inFile("./data/game.dat");
+    if (inFile.is_open() && !inFile.eof()) {
+        inFile.read((char *) &game, sizeof(gameState));
+    }
+    inFile.close();
+    if (game.gameOver) {
+        game.gameOver = false;
+        for (int i = 0; i < 25; i++) {
+            // 0 means Empty, 1 Means Red, -1 Means Blue
+            game.board[i%5][i/5] = ((i < 12) ? 1 : ((i > 12) ? -1 : 0));
+        }
     }
     return game;
 }
@@ -111,6 +130,7 @@ turnData playTurn(gameState &game, Coordinates pos, Coordinates move) {
     getMoves(game, pos,possibleMoves);
     if (checkVictory(game) != 0) {
         game.turn = 0;
+        game.gameOver = true;
         return {3, moves[0], moves[1]};
     }
     for (int i = 0; i < 9; i++) {
