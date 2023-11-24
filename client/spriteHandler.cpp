@@ -244,14 +244,11 @@ void renderHighlights(Board &board, sf::Vector2i gridPos)
         {
             if (moves[i][j] != 0)
             {
-                cout << gridPos.x + moves[i][j] * (i - 1) << " " << gridPos.y + moves[i][j] * (j - 1) << endl;
                 Highlight &highlight = board.highlights[gridPos.x + moves[i][j] * (i - 1)][gridPos.y + moves[i][j] * (j - 1)];
                 highlight.move.x = i;
                 highlight.move.y = j;
                 highlight.base = gridPos;
-                cout << highlight.sprite.getPosition().x << " " << highlight.sprite.getPosition().y << endl;
                 highlight.sprite.setScale({gridBoxSize.x / textureSize.x, gridBoxSize.y / textureSize.y});
-                cout << highlight.sprite.getScale().x << " " << highlight.sprite.getScale().y << endl;
             }
         }
     }
