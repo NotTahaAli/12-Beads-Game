@@ -27,17 +27,21 @@ void saveGameState(gameState game) {
 
 gameState initGame(bool loadPrevious) {
     gameState game;
-    std::ifstream inFile("./data/game.dat");
-    if (inFile.is_open() && !inFile.eof()) {
-        inFile.read((char *) &game, sizeof(gameState));
+    if (loadPrevious) {
+        std::ifstream inFile("./data/game.dat");
+        if (inFile.is_open() && !inFile.eof()) {
+            inFile.read((char *) &game, sizeof(gameState));
+        }
+        inFile.close();
     }
-    inFile.close();
     if (game.gameOver) {
         game.gameOver = false;
         for (int i = 0; i < 25; i++) {
             // 0 means Empty, 1 Means Red, -1 Means Blue
             game.board[i%5][i/5] = ((i < 12) ? 1 : ((i > 12) ? -1 : 0));
         }
+        srand(time(0));
+        game.turn = (rand() % 2) ? 1 : -1;
     }
     return game;
 }
