@@ -10,13 +10,13 @@
 - Available in package managers
 ### [MinGW Std Threads (Windows Only)](https://github.com/meganz/mingw-std-threads)
 - Folder name as mingw-threads
+### [RapidJSON](https://rapidjson.org/index.html)
 
 ## Compiling GUI (MinGW)
 ### Windows
 ```sh
 del main.exe *.o
 g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/spriteHandler.cpp
-g++ -I "<Home Folder with websocketpp and mingw-threads>" -I "<asio folder>/include" -c server/socket.cpp
 g++ -c common/game.cpp
 g++ game.o gui.o spriteHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system
 ./main
@@ -25,6 +25,15 @@ g++ game.o gui.o spriteHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics 
 ```sh
 g++ common/game.cpp client/gui.cpp client/spriteHandler.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
 ./main
+```
+
+## Compiling Server (MinGW)
+### Windows
+```sh
+del server.exe *.o
+g++ -I "<Home Folder with websocketpp and mingw-threads>" -I "<asio folder>/include" -I "<rapidjson folder>/include" -c server/socket.cpp
+g++ -c common/game.cpp
+g++ socket.o game.o -o server -lws2_32 -lwsock32
 ```
 
 ## Compiling consoleBased (MinGW)
