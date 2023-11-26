@@ -10,15 +10,6 @@ void setIcon(string fileLocation, sf::RenderWindow &window)
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 }
 
-// Highlight positions
-void highlightPosition(sf::RenderWindow &window, sf::Vector2f position, sf::Vector2f size, sf::Color color)
-{
-    sf::RectangleShape rectangle(size);
-    rectangle.setFillColor(color);
-    rectangle.setPosition(position);
-    window.draw(rectangle);
-}
-
 void fillHeight(sf::RenderWindow &window, sf::Sprite &sprite) {
     sf::Vector2i textureSize = sprite.getTextureRect().getSize();
     sf::Vector2u windowSize = window.getSize();
