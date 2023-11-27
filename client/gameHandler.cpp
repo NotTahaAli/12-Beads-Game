@@ -1,4 +1,4 @@
-#include "spriteHandler.h"
+#include "gameHandler.h"
 #include <cmath>
 
 // Define Texture Variables
@@ -17,8 +17,6 @@ const float boardDivisions = 10;
 
 #include <iostream>
 using namespace std;
-
-sf::Cursor cursor;
 
 void updateHighlightsPosition(Board &board);
 
@@ -75,14 +73,14 @@ void removeBead(Bead &bead, unsigned int frames)
     bead.speed = (bead.gridTarget - bead.gridPos) / (float)frames;
 }
 
-Board setUpBoard()
+Board setUpBoard(bool loadPrevious)
 {
     if (boardTextureSize.x == 0)
     {
         initTextures();
     }
     Board board = {getBoardSprite()};
-    board.game = initGame();
+    board.game = initGame(loadPrevious);
     for (int x = 0; x < 5; x++)
     {
         for (int y = 0; y < 5; y++)
@@ -96,6 +94,8 @@ Board setUpBoard()
         }
     }
     updateHighlightsPosition(board);
+    board.visible = true;
+    board.blocked = false;
     return board;
 }
 
@@ -187,15 +187,15 @@ bool isBeadClickValid(Board &board, sf::Vector2i gridPos)
     return (turn != 0 && (board.game.lastTurn.x == -1 || (board.game.lastTurn.x == gridPos.x && board.game.lastTurn.y == gridPos.y)) && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == turn);
 }
 
-void checkHover(sf::RenderWindow &window, Board &board, sf::Event::MouseMoveEvent mouseMove)
+bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove)
 {
-    cursor.loadFromSystem(sf::Cursor::Arrow);
+    bool hovering = false;
     if (!board.blocked) {
     sf::Vector2i gridPos = getCircularGridPos(board, {mouseMove.x, mouseMove.y});
     if (gridPos.x >= 0 && (isHighlightValid(board, gridPos) || isBeadClickValid(board, gridPos)))
-        cursor.loadFromSystem(sf::Cursor::Hand);
+        hovering = true;
     };
-    window.setMouseCursor(cursor);
+    return hovering;
 }
 
 void resetHighlights(Board &board)

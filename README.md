@@ -16,14 +16,14 @@
 ### Windows
 ```sh
 del main.exe *.o
-g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/spriteHandler.cpp
+g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/gameHandler.cpp -c client/menuHandler.cpp
 g++ -c common/game.cpp
-g++ game.o gui.o spriteHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system
+g++ game.o gui.o gameHandler.o menuHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system
 ./main
 ```
 ### Linux
 ```sh
-g++ common/game.cpp client/gui.cpp client/spriteHandler.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+g++ common/game.cpp client/gui.cpp client/gameHandler.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
 ./main
 ```
 
