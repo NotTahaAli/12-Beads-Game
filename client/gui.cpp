@@ -220,6 +220,11 @@ int main()
 
     int possibleMoves[3][3];
 
+    sf::Text turn;
+    turn.setCharacterSize(0.05 * window.getSize().y);
+    turn.setFont(font);
+    turn.setPosition(window.getSize().x/2.f, window.getSize().y);
+
     sf::Cursor cursor;
 
     while (window.isOpen())
@@ -268,6 +273,11 @@ int main()
         window.draw(rightSprite);
         drawMenu(window, mainMenu);
         drawBoard(window, board);
+        if (board.visible && !board.blocked) {
+            turn.setString((board.game.turn == 1) ? "Black Turn" : "Red Turn");
+            turn.setOrigin(turn.getGlobalBounds().getSize().x/2.f, 2*turn.getGlobalBounds().getSize().y);
+            window.draw(turn);
+        }
         drawMenu(window, popupMenu);
 
         window.display();
