@@ -121,7 +121,6 @@ void setupMainMenu()
     play.text.setPosition(play.sprite.getPosition());
     mainMenu.buttons.push_back(play);
     Button resume;
-    resume.state = 1;
     resume.callback = resumeGame;
     resume.normalTexture = mainMenuButton;
     resume.disabledTexture = mainMenuButtonDisabled;
@@ -214,8 +213,6 @@ int main()
 
     setupMainMenu();
     setupPopupMenu();
-
-    showPopup("Black Won");
 
     int possibleMoves[3][3];
 
