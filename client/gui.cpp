@@ -4,12 +4,13 @@
 #include <iostream>
 using namespace std;
 
-Menu mainMenu, pauseMenu;
+Menu mainMenu, popupMenu;
 Board board;
 
-sf::Texture mainMenuButton;
-sf::Vector2f mainMenuButtonSize;
+sf::Texture mainMenuButton, mainMenuButtonDisabled, mainMenuButtonHover, popup, backdrop, menuButtonImg;
+sf::Vector2f mainMenuButtonSize, popupSize, menuButtonImgSize;
 sf::Font font;
+sf::Color normalColor(255, 255, 255, 255), disabledColor(0, 0, 0, 128), hoverColor(255, 255, 255, 255);
 
 sf::RenderWindow window;
 
@@ -20,7 +21,8 @@ void setIcon(string fileLocation, sf::RenderWindow &window)
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 }
 
-void fillHeight(sf::RenderWindow &window, sf::Sprite &sprite) {
+void fillHeight(sf::RenderWindow &window, sf::Sprite &sprite)
+{
     sf::Vector2i textureSize = sprite.getTextureRect().getSize();
     sf::Vector2u windowSize = window.getSize();
 
@@ -50,7 +52,29 @@ void cover(sf::RenderWindow &window, sf::Sprite &sprite)
     }
 }
 
-void startNewGame() {
+void showPopup(string message) {
+    board.visible = true;
+    board.blocked = true;
+    mainMenu.visible = false;
+    mainMenu.blocked = true;
+    popupMenu.visible = true;
+    popupMenu.blocked = false;
+    popupMenu.buttons[0].text.setString(message);
+    popupMenu.buttons[0].text.setOrigin(popupMenu.buttons[0].text.getLocalBounds().getSize() / 2.f);
+}
+
+void showMenu()
+{
+    board.visible = false;
+    board.blocked = true;
+    mainMenu.visible = true;
+    mainMenu.blocked = false;
+    popupMenu.visible = false;
+    popupMenu.blocked = true;
+}
+
+void startNewGame()
+{
     board = setUpBoard(false);
     int minDimension = 0.9 * ((window.getSize().x < window.getSize().y) ? window.getSize().x : window.getSize().y);
     setBoardSize(board, {minDimension, minDimension});
@@ -59,26 +83,36 @@ void startNewGame() {
     mainMenu.visible = false;
 }
 
-void resumeGame() {
-    if (board.game.gameOver) {
+void resumeGame()
+{
+    if (board.game.gameOver)
+    {
         board = setUpBoard(true);
     }
     int minDimension = 0.9 * ((window.getSize().x < window.getSize().y) ? window.getSize().x : window.getSize().y);
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
+    board.visible = true;
+    board.blocked = false;
     mainMenu.blocked = true;
     mainMenu.visible = false;
 }
 
-void setupMainMenu() {
+void setupMainMenu()
+{
     Button play;
     float scale = 0.3 * window.getSize().x / mainMenuButtonSize.x;
     mainMenu.blocked = false;
     mainMenu.visible = true;
     play.callback = startNewGame;
     play.normalTexture = mainMenuButton;
-    play.sprite.setOrigin(mainMenuButtonSize/2.f);
-    play.sprite.setPosition(sf::Vector2f(window.getSize())/2.f + sf::Vector2f(0, 0.5 * scale * mainMenuButtonSize.y));
+    play.disabledTexture = mainMenuButtonDisabled;
+    play.hoverTexture = mainMenuButtonHover;
+    play.normalColor = normalColor;
+    play.disabledColor = disabledColor;
+    play.hoverColor = hoverColor;
+    play.sprite.setOrigin(mainMenuButtonSize / 2.f);
+    play.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0, 0.5 * scale * mainMenuButtonSize.y));
     play.sprite.setScale(scale, scale);
     play.text.setString("Play");
     play.text.setFont(font);
@@ -87,10 +121,16 @@ void setupMainMenu() {
     play.text.setPosition(play.sprite.getPosition());
     mainMenu.buttons.push_back(play);
     Button resume;
+    resume.state = 1;
     resume.callback = resumeGame;
     resume.normalTexture = mainMenuButton;
-    resume.sprite.setOrigin(mainMenuButtonSize/2.f);
-    resume.sprite.setPosition(sf::Vector2f(window.getSize())/2.f - sf::Vector2f(0, 0.5 * scale * mainMenuButtonSize.y));
+    resume.disabledTexture = mainMenuButtonDisabled;
+    resume.hoverTexture = mainMenuButtonHover;
+    resume.normalColor = normalColor;
+    resume.disabledColor = disabledColor;
+    resume.hoverColor = hoverColor;
+    resume.sprite.setOrigin(mainMenuButtonSize / 2.f);
+    resume.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f - sf::Vector2f(0, 0.5 * scale * mainMenuButtonSize.y));
     resume.sprite.setScale(scale, scale);
     resume.text.setString("Resume");
     resume.text.setFont(font);
@@ -100,12 +140,49 @@ void setupMainMenu() {
     mainMenu.buttons.push_back(resume);
 }
 
+void setupPopupMenu()
+{
+    float scale = 0.5 * window.getSize().x / popupSize.x;
+    sf::Sprite backdropSprite;
+    backdropSprite.setTexture(backdrop);
+    cover(window, backdropSprite);
+    popupMenu.backgroundElements.push_back(backdropSprite);
+    sf::Sprite popupSprite;
+    popupSprite.setTexture(popup);
+    popupSprite.setOrigin(popupSize / 2.f);
+    popupSprite.setPosition(sf::Vector2f(window.getSize()) / 2.f);
+    popupSprite.setScale(scale, scale);
+    popupMenu.backgroundElements.push_back(popupSprite);
+    Button menuButton;
+    scale = 0.1 * window.getSize().x / menuButtonImgSize.x;
+    menuButton.normalTexture = menuButtonImg;
+    menuButton.normalColor = normalColor;
+    menuButton.disabledColor = normalColor;
+    menuButton.hoverColor = normalColor;
+    menuButton.sprite.setOrigin(popupSize / 2.f);
+    menuButton.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0, 0.5 * scale * menuButtonImgSize.y));
+    menuButton.sprite.setScale(scale, scale);
+    menuButton.text.setFont(font);
+    menuButton.text.setCharacterSize(1.25 * scale * mainMenuButtonSize.y);
+    menuButton.text.setPosition(menuButton.sprite.getPosition() - sf::Vector2f(0, scale * menuButtonImgSize.y));
+    menuButton.callback = showMenu;
+    popupMenu.buttons.push_back(menuButton);
+}
+
 int main()
 {
 
-    mainMenuButton.loadFromFile("./assets/mainMenuButton.png");
-    mainMenuButtonSize = sf::Vector2f(mainMenuButton.getSize());
     font.loadFromFile("./assets/go3v2.ttf");
+
+    mainMenuButton.loadFromFile("./assets/mainMenuButton.png");
+    mainMenuButtonDisabled.loadFromFile("./assets/mainMenuButtonDisabled.png");
+    mainMenuButtonHover.loadFromFile("./assets/mainMenuButtonHover.png");
+    mainMenuButtonSize = sf::Vector2f(mainMenuButton.getSize());
+    menuButtonImg.loadFromFile("./assets/menuButton.png");
+    menuButtonImgSize = sf::Vector2f(menuButtonImg.getSize());
+    popup.loadFromFile("./assets/popup.png");
+    popupSize = sf::Vector2f(popup.getSize());
+    backdrop.loadFromFile("./assets/backdrop.png");
 
     sf::VideoMode windowMode = sf::VideoMode::getDesktopMode();
     window.create(windowMode, "12 Beads Game", sf::Style::None);
@@ -136,6 +213,9 @@ int main()
     fillHeight(window, rightSprite);
 
     setupMainMenu();
+    setupPopupMenu();
+
+    showPopup("Black Won");
 
     int possibleMoves[3][3];
 
@@ -154,12 +234,16 @@ int main()
                 {
                     window.close();
                 }
+                if (event.key.code == sf::Keyboard::Escape)
+                {
+                    showMenu();
+                }
             }
             else if (event.type == sf::Event::MouseMoved)
             {
 
                 cursor.loadFromSystem(sf::Cursor::Arrow);
-                if (checkHover(board, event.mouseMove) || checkHover(mainMenu, event.mouseMove) || checkHover(pauseMenu, event.mouseMove))
+                if (checkHover(board, event.mouseMove) || checkHover(mainMenu, event.mouseMove) || checkHover(popupMenu, event.mouseMove))
                 {
                     cursor.loadFromSystem(sf::Cursor::Hand);
                 }
@@ -167,9 +251,9 @@ int main()
             }
             else if (event.type == sf::Event::MouseButtonPressed)
             {
-                checkClick(board, event.mouseButton);
+                checkClick(board, event.mouseButton, showPopup);
                 checkClick(mainMenu, event.mouseButton);
-                checkClick(pauseMenu, event.mouseButton);
+                checkClick(popupMenu, event.mouseButton);
             }
         }
 
@@ -180,7 +264,7 @@ int main()
         window.draw(rightSprite);
         drawMenu(window, mainMenu);
         drawBoard(window, board);
-        drawMenu(window, pauseMenu);
+        drawMenu(window, popupMenu);
 
         window.display();
     }

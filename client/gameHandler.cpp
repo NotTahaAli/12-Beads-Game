@@ -254,12 +254,12 @@ void renderHighlights(Board &board, sf::Vector2i gridPos)
     }
 }
 
-void attemptTurnPlay(Board &board, sf::Vector2i gridPos) {
+void attemptTurnPlay(Board &board, sf::Vector2i gridPos, showPopupFunc showPopup) {
     Highlight highlight = board.highlights[gridPos.x][gridPos.y];
     turnData tdata = playTurn(board.game, {highlight.base.x, highlight.base.y}, {highlight.move.x, highlight.move.y});
     resetHighlights(board);
     if (tdata.status == 0) {
-        // show popup of move error.
+        // Move Error
         return;
     }
     moveBead(board.beads[tdata.move.from.x][tdata.move.from.y], {tdata.move.to.x, tdata.move.to.y});
@@ -269,14 +269,14 @@ void attemptTurnPlay(Board &board, sf::Vector2i gridPos) {
         removeBead(board.beads[tdata.remove.from.x][tdata.remove.from.y]);
     }
     if (tdata.status == 3) {
-        // Show popup of game over.
+        showPopup((checkVictory(board.game) == 1) ? "Black Won" : "Red Won");
         board.blocked = true;
     } else if (tdata.status == 1) {
         renderHighlights(board, {tdata.move.to.x, tdata.move.to.y});
     }
 }
 
-void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton)
+void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton, showPopupFunc showPopup)
 {
     if (mouseButton.button == 0)
     {
@@ -286,7 +286,7 @@ void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton)
             {
                 if (isHighlightValid(board, gridPos))
                 {
-                    attemptTurnPlay(board,gridPos);
+                    attemptTurnPlay(board,gridPos, showPopup);
                 }
                 else if (isBeadClickValid(board, gridPos))
                     renderHighlights(board, gridPos);

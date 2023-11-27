@@ -13,12 +13,15 @@ void drawMenu(sf::RenderWindow &window, Menu &menu)
         switch (menu.buttons[i].state) {
             case 0:
                 menu.buttons[i].sprite.setTexture(menu.buttons[i].normalTexture);
+                menu.buttons[i].text.setFillColor(menu.buttons[i].normalColor);
                 break;
             case 1:
                 menu.buttons[i].sprite.setTexture(menu.buttons[i].disabledTexture);
+                menu.buttons[i].text.setFillColor(menu.buttons[i].disabledColor);
                 break;
             case 2:
                 menu.buttons[i].sprite.setTexture(menu.buttons[i].hoverTexture);
+                menu.buttons[i].text.setFillColor(menu.buttons[i].hoverColor);
                 break;
         }
         window.draw(menu.buttons[i].sprite);

@@ -7,6 +7,7 @@ struct Button {
     sf::Sprite sprite;
     sf::Texture normalTexture, disabledTexture, hoverTexture;
     sf::Text text;
+    sf::Color normalColor, disabledColor, hoverColor;
     callback callback;
     // 0 - Normal
     // 1 - Disabled

@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include "../common/game.h"
 
+typedef void (*showPopupFunc)(std::string);
+
 struct Bead {
     sf::Sprite sprite;
     sf::Vector2f speed;
@@ -30,5 +32,5 @@ Board setUpBoard(bool loadPrevious = true);
 void drawBoard(sf::RenderWindow &window, Board &board);
 void setBoardSize(Board &board, sf::Vector2i SizeInPixels);
 void centerBoard(Board &board, sf::RenderWindow &window);
-void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton);
+void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton, showPopupFunc showPopup);
 bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove);
