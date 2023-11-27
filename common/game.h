@@ -42,3 +42,4 @@ void getMoves(gameState &game, Coordinates pos, int moves[3][3]);
 turnData playTurn(gameState &game, Coordinates pos, Coordinates move);
 
 void saveGameState(gameState game);
+bool isPreviousAvailable();

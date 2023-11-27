@@ -71,6 +71,8 @@ void showMenu()
     mainMenu.blocked = false;
     popupMenu.visible = false;
     popupMenu.blocked = true;
+    mainMenu.buttons[1].state = 1;
+    saveGameState(board.game);
 }
 
 void startNewGame()
@@ -104,7 +106,6 @@ void setupMainMenu()
     float scale = 0.3 * window.getSize().x / mainMenuButtonSize.x;
     mainMenu.blocked = false;
     mainMenu.visible = true;
-    play.callback = startNewGame;
     play.normalTexture = mainMenuButton;
     play.disabledTexture = mainMenuButtonDisabled;
     play.hoverTexture = mainMenuButtonHover;
@@ -120,8 +121,9 @@ void setupMainMenu()
     play.text.setOrigin(play.text.getLocalBounds().getSize() / 2.f);
     play.text.setPosition(play.sprite.getPosition());
     mainMenu.buttons.push_back(play);
+    mainMenu.buttons[0].callback = startNewGame;
     Button resume;
-    resume.callback = resumeGame;
+    resume.state = 0;
     resume.normalTexture = mainMenuButton;
     resume.disabledTexture = mainMenuButtonDisabled;
     resume.hoverTexture = mainMenuButtonHover;
@@ -137,6 +139,7 @@ void setupMainMenu()
     resume.text.setOrigin(resume.text.getLocalBounds().getSize() / 2.f);
     resume.text.setPosition(resume.sprite.getPosition());
     mainMenu.buttons.push_back(resume);
+    mainMenu.buttons[1].callback = resumeGame;
 }
 
 void setupPopupMenu()
@@ -213,6 +216,7 @@ int main()
 
     setupMainMenu();
     setupPopupMenu();
+    mainMenu.buttons[1].state = (isPreviousAvailable() ? 0 : 1);
 
     int possibleMoves[3][3];
 
@@ -220,6 +224,9 @@ int main()
 
     while (window.isOpen())
     {
+        if (!board.game.gameOver) {
+            mainMenu.buttons[1].state = 0;
+        }
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -266,7 +273,8 @@ int main()
         window.display();
     }
 
-    saveGameState(board.game);
+    if (!board.game.gameOver)
+        saveGameState(board.game);
 
     return 0;
 }

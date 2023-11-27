@@ -10,19 +10,20 @@ void drawMenu(sf::RenderWindow &window, Menu &menu)
     }
     for (int i = 0; i < menu.buttons.size(); i++)
     {
-        switch (menu.buttons[i].state) {
-            case 0:
-                menu.buttons[i].sprite.setTexture(menu.buttons[i].normalTexture);
-                menu.buttons[i].text.setFillColor(menu.buttons[i].normalColor);
-                break;
-            case 1:
-                menu.buttons[i].sprite.setTexture(menu.buttons[i].disabledTexture);
-                menu.buttons[i].text.setFillColor(menu.buttons[i].disabledColor);
-                break;
-            case 2:
-                menu.buttons[i].sprite.setTexture(menu.buttons[i].hoverTexture);
-                menu.buttons[i].text.setFillColor(menu.buttons[i].hoverColor);
-                break;
+        if (menu.buttons[i].state == 0)
+        {
+            menu.buttons[i].sprite.setTexture(menu.buttons[i].normalTexture);
+            menu.buttons[i].text.setFillColor(menu.buttons[i].normalColor);
+        }
+        else if (menu.buttons[i].state == 1)
+        {
+            menu.buttons[i].sprite.setTexture(menu.buttons[i].disabledTexture);
+            menu.buttons[i].text.setFillColor(menu.buttons[i].disabledColor);
+        }
+        else
+        {
+            menu.buttons[i].sprite.setTexture(menu.buttons[i].hoverTexture);
+            menu.buttons[i].text.setFillColor(menu.buttons[i].hoverColor);
         }
         window.draw(menu.buttons[i].sprite);
         window.draw(menu.buttons[i].text);
