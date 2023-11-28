@@ -17,8 +17,9 @@
 ```sh
 del main.exe *.o
 g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/gameHandler.cpp -c client/menuHandler.cpp
+g++ -I "<sfml folder>/include" -I "<Home Folder with websocketpp and mingw-threads>" -I "<asio folder>/include" -I "<rapidjson folder>/include" -c client/socketHandler.cpp
 g++ -c common/game.cpp
-g++ game.o gui.o gameHandler.o menuHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system
+g++ game.o gui.o gameHandler.o menuHandler.o socketHandler.o -o main -L "<sfml folder>/lib" -lsfml-graphics -lsfml-window -lsfml-system -lwsock32 -lws2_32
 ./main
 ```
 ### Linux

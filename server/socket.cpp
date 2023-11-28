@@ -55,6 +55,7 @@ void ShowMoves(websocketpp::server<websocketpp::config::asio> *s, websocketpp::c
     StringBuffer sBuff;
     Writer<StringBuffer> writer(sBuff);
     getMoves(game.game, pos, moves);
+    bool first = true;
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < 3; j++)
@@ -66,6 +67,8 @@ void ShowMoves(websocketpp::server<websocketpp::config::asio> *s, websocketpp::c
             writer.StartObject();
             writer.Key("event");
             writer.Int(5);
+            writer.Key("first");
+            writer.Bool(first);
             writer.Key("pos");
             writer.StartObject();
             writer.Key("x");
@@ -83,6 +86,7 @@ void ShowMoves(websocketpp::server<websocketpp::config::asio> *s, websocketpp::c
             writer.Int(moves[i][j]);
             writer.EndObject();
             writer.EndObject();
+            first = false;
             string outputJSON = sBuff.GetString();
             s->send(hdl, outputJSON, websocketpp::frame::opcode::text);
         }
@@ -226,9 +230,25 @@ void on_message(websocketpp::server<websocketpp::config::asio> *s, websocketpp::
 
                 if (turndata.status == 1)
                 {
+                    StringBuffer sBuff;
+                    Writer<StringBuffer> writer(sBuff);
+                    writer.StartObject();
+                    writer.Key("event");
+                    writer.Int(7);
+                    writer.Key("lastTurn");
+                    writer.StartObject();
+                    writer.Key("x");
+                    writer.Int(game.game.lastTurn.x);
+                    writer.Key("y");
+                    writer.Int(game.game.lastTurn.y);
+                    writer.EndObject();
+                    writer.EndObject();
+                    string outputJSON = sBuff.GetString();
+                    s->send(hdl, outputJSON, websocketpp::frame::opcode::text);
                     ShowMoves(s, hdl, game, {eventData["pos"]["x"].GetInt(), eventData["pos"]["y"].GetInt()});
                 }
-                else if (turndata.status == 3)
+                
+                if (turndata.status == 3)
                 {
                     int winner = checkVictory(game.game);
                     StringBuffer vBuff;
@@ -267,6 +287,13 @@ void on_message(websocketpp::server<websocketpp::config::asio> *s, websocketpp::
                     writer.Int(7);
                     writer.Key("turn");
                     writer.Int(game.game.turn);
+                    writer.Key("lastTurn");
+                    writer.StartObject();
+                    writer.Key("x");
+                    writer.Int(game.game.lastTurn.x);
+                    writer.Key("y");
+                    writer.Int(game.game.lastTurn.y);
+                    writer.EndObject();
                     writer.EndObject();
                     string outputJSON = sBuff.GetString();
                     s->send(game.bluePlayer, outputJSON, websocketpp::frame::opcode::text);

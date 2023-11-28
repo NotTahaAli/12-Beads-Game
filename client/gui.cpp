@@ -1,16 +1,17 @@
-#include "gameHandler.h"
-#include "menuHandler.h"
+#include "socketHandler.h"
 
 #include <iostream>
 using namespace std;
 
-Menu mainMenu, popupMenu;
+Menu mainMenu, popupMenu, onlineMenu;
 Board board;
 
 sf::Texture mainMenuButton, mainMenuButtonDisabled, mainMenuButtonHover, popup, backdrop, menuButtonImg;
 sf::Vector2f mainMenuButtonSize, popupSize, menuButtonImgSize;
 sf::Font font;
 sf::Color normalColor(255, 255, 255, 255), disabledColor(0, 0, 0, 128), hoverColor(255, 255, 255, 255);
+
+string URL = "ws://192.168.1.16:3000";
 
 sf::RenderWindow window;
 
@@ -59,8 +60,13 @@ void showPopup(string message) {
     mainMenu.blocked = true;
     popupMenu.visible = true;
     popupMenu.blocked = false;
+    onlineMenu.blocked = true;
+    onlineMenu.visible = false;
     popupMenu.buttons[0].text.setString(message);
     popupMenu.buttons[0].text.setOrigin(popupMenu.buttons[0].text.getLocalBounds().getSize() / 2.f);
+    float scale = popupMenu.backgroundElements[1].getGlobalBounds().getSize().x * 0.6;
+    scale /= popupMenu.buttons[0].text.getLocalBounds().getSize().x;
+    popupMenu.buttons[0].text.setScale(scale, scale);
 }
 
 void showMenu()
@@ -71,8 +77,26 @@ void showMenu()
     mainMenu.blocked = false;
     popupMenu.visible = false;
     popupMenu.blocked = true;
+    onlineMenu.blocked = true;
+    onlineMenu.visible = false;
     mainMenu.buttons[1].state = 1;
-    saveGameState(board.game);
+    if (!board.isOnline && board.game.saveable) saveGameState(board.game);
+    closeSocket();
+}
+
+void startOnlineGame() {
+    connect(URL);
+    onlineMenu.buttons[0].text.setString("Connecting...");
+    onlineMenu.buttons[0].text.setOrigin(onlineMenu.buttons[0].text.getGlobalBounds().getSize().x/2.f, 3.5*onlineMenu.buttons[0].text.getGlobalBounds().getSize().y);
+    onlineMenu.visible = true;
+    onlineMenu.blocked = false;
+    board.game.saveable = false;
+    board.visible = false;
+    board.blocked = true;
+    mainMenu.visible = false;
+    mainMenu.blocked = true;
+    popupMenu.visible = false;
+    popupMenu.blocked = true;
 }
 
 void startNewGame()
@@ -83,6 +107,8 @@ void startNewGame()
     centerBoard(board, window);
     mainMenu.blocked = true;
     mainMenu.visible = false;
+    onlineMenu.blocked = true;
+    onlineMenu.visible = false;
 }
 
 void resumeGame()
@@ -98,12 +124,14 @@ void resumeGame()
     board.blocked = false;
     mainMenu.blocked = true;
     mainMenu.visible = false;
+    onlineMenu.blocked = true;
+    onlineMenu.visible = false;
 }
 
 void setupMainMenu()
 {
     Button play;
-    float scale = 0.3 * window.getSize().x / mainMenuButtonSize.x;
+    float scale = 0.25 * window.getSize().x / mainMenuButtonSize.x;
     mainMenu.blocked = false;
     mainMenu.visible = true;
     play.normalTexture = mainMenuButton;
@@ -113,11 +141,11 @@ void setupMainMenu()
     play.disabledColor = disabledColor;
     play.hoverColor = hoverColor;
     play.sprite.setOrigin(mainMenuButtonSize / 2.f);
-    play.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0, 0.5 * scale * mainMenuButtonSize.y));
+    play.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0, 1 * scale * mainMenuButtonSize.y));
     play.sprite.setScale(scale, scale);
     play.text.setString("Play");
     play.text.setFont(font);
-    play.text.setCharacterSize(0.3 * scale * mainMenuButtonSize.y);
+    play.text.setCharacterSize(0.2 * scale * mainMenuButtonSize.y);
     play.text.setOrigin(play.text.getLocalBounds().getSize() / 2.f);
     play.text.setPosition(play.sprite.getPosition());
     mainMenu.buttons.push_back(play);
@@ -131,15 +159,33 @@ void setupMainMenu()
     resume.disabledColor = disabledColor;
     resume.hoverColor = hoverColor;
     resume.sprite.setOrigin(mainMenuButtonSize / 2.f);
-    resume.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f - sf::Vector2f(0, 0.5 * scale * mainMenuButtonSize.y));
+    resume.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f);
     resume.sprite.setScale(scale, scale);
     resume.text.setString("Resume");
     resume.text.setFont(font);
-    resume.text.setCharacterSize(0.3 * scale * mainMenuButtonSize.y);
+    resume.text.setCharacterSize(0.2 * scale * mainMenuButtonSize.y);
     resume.text.setOrigin(resume.text.getLocalBounds().getSize() / 2.f);
     resume.text.setPosition(resume.sprite.getPosition());
     mainMenu.buttons.push_back(resume);
     mainMenu.buttons[1].callback = resumeGame;
+    Button online;
+    online.state = 0;
+    online.normalTexture = mainMenuButton;
+    online.disabledTexture = mainMenuButtonDisabled;
+    online.hoverTexture = mainMenuButtonHover;
+    online.normalColor = normalColor;
+    online.disabledColor = disabledColor;
+    online.hoverColor = hoverColor;
+    online.sprite.setOrigin(mainMenuButtonSize / 2.f);
+    online.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f - sf::Vector2f(0, 1 * scale * mainMenuButtonSize.y));
+    online.sprite.setScale(scale, scale);
+    online.text.setString("Play Online");
+    online.text.setFont(font);
+    online.text.setCharacterSize(0.2 * scale * mainMenuButtonSize.y);
+    online.text.setOrigin(online.text.getLocalBounds().getSize() / 2.f);
+    online.text.setPosition(online.sprite.getPosition());
+    mainMenu.buttons.push_back(online);
+    mainMenu.buttons[2].callback = startOnlineGame;
 }
 
 void setupPopupMenu()
@@ -171,8 +217,34 @@ void setupPopupMenu()
     popupMenu.buttons.push_back(menuButton);
 }
 
+void setupOnlineMenu()
+{
+    float scale = 0.5 * window.getSize().x / popupSize.x;
+    sf::Sprite onlineSprite;
+    onlineSprite.setTexture(popup);
+    onlineSprite.setOrigin(popupSize / 2.f);
+    onlineSprite.setPosition(sf::Vector2f(window.getSize()) / 2.f);
+    onlineSprite.setScale(scale, scale);
+    onlineMenu.backgroundElements.push_back(onlineSprite);
+    Button menuButton;
+    scale = 0.1 * window.getSize().x / menuButtonImgSize.x;
+    menuButton.normalTexture = menuButtonImg;
+    menuButton.normalColor = normalColor;
+    menuButton.disabledColor = normalColor;
+    menuButton.hoverColor = normalColor;
+    menuButton.sprite.setOrigin(popupSize / 2.f);
+    menuButton.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0, 0.5 * scale * menuButtonImgSize.y));
+    menuButton.sprite.setScale(scale, scale);
+    menuButton.text.setFont(font);
+    menuButton.text.setCharacterSize(0.75 * scale * mainMenuButtonSize.y);
+    menuButton.text.setPosition(menuButton.sprite.getPosition() + sf::Vector2f(0, 0.2 * scale * menuButtonImgSize.y));
+    menuButton.callback = showMenu;
+    onlineMenu.buttons.push_back(menuButton);
+}
+
 int main()
 {
+    setupClient();
 
     font.loadFromFile("./assets/go3v2.ttf");
 
@@ -216,6 +288,7 @@ int main()
 
     setupMainMenu();
     setupPopupMenu();
+    setupOnlineMenu();
     mainMenu.buttons[1].state = (isPreviousAvailable() ? 0 : 1);
 
     int possibleMoves[3][3];
@@ -245,14 +318,14 @@ int main()
                 }
                 if (event.key.code == sf::Keyboard::Escape)
                 {
-                    showMenu();
+                    if (board.game.gameOver || !board.isOnline) showMenu();
                 }
             }
             else if (event.type == sf::Event::MouseMoved)
             {
 
                 cursor.loadFromSystem(sf::Cursor::Arrow);
-                if (checkHover(board, event.mouseMove) || checkHover(mainMenu, event.mouseMove) || checkHover(popupMenu, event.mouseMove))
+                if (checkHover(board, event.mouseMove) || checkHover(mainMenu, event.mouseMove) || checkHover(popupMenu, event.mouseMove) || checkHover(onlineMenu, event.mouseMove))
                 {
                     cursor.loadFromSystem(sf::Cursor::Hand);
                 }
@@ -260,9 +333,10 @@ int main()
             }
             else if (event.type == sf::Event::MouseButtonPressed)
             {
-                checkClick(board, event.mouseButton, showPopup);
+                checkClick(board, event.mouseButton);
                 checkClick(mainMenu, event.mouseButton);
                 checkClick(popupMenu, event.mouseButton);
+                checkClick(onlineMenu, event.mouseButton);
             }
         }
 
@@ -279,11 +353,13 @@ int main()
             window.draw(turn);
         }
         drawMenu(window, popupMenu);
+        drawMenu(window, onlineMenu);
 
         window.display();
     }
+    closeClient();
 
-    if (!board.game.gameOver)
+    if (!board.game.gameOver && !board.isOnline)
         saveGameState(board.game);
 
     return 0;

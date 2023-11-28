@@ -20,6 +20,7 @@ void nextTurn(gameState &game)
 
 void saveGameState(gameState game)
 {
+    if (!game.saveable) return;
     std::ofstream outFile("./data/game.dat");
     if (!game.gameOver)
     {
@@ -41,7 +42,7 @@ bool isPreviousAvailable()
         inFile.read((char *)&game, sizeof(gameState));
     }
     inFile.close();
-    return !game.gameOver;
+    return game.saveable && !game.gameOver;
 }
 
 gameState initGame(bool loadPrevious)
@@ -56,9 +57,10 @@ gameState initGame(bool loadPrevious)
         }
         inFile.close();
     }
-    if (game.gameOver)
+    if (!game.saveable || game.gameOver)
     {
         game.gameOver = false;
+        game.saveable = true;
         for (int i = 0; i < 25; i++)
         {
             // 0 means Empty, 1 Means Red, -1 Means Blue

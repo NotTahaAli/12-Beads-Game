@@ -32,6 +32,7 @@ struct gameState {
     int turn = -1;
 
     bool gameOver = true;
+    bool saveable = false;
 };
 
 int getTurn(gameState &game);

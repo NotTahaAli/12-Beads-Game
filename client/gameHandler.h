@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "../common/game.h"
 
-typedef void (*showPopupFunc)(std::string);
+extern void showPopup(std::string message);
 
 struct Bead {
     sf::Sprite sprite;
@@ -23,14 +23,18 @@ struct Board {
     gameState game;
     bool visible = false;
     bool blocked = true;
+    bool isOnline = false;
 };
 
-void moveBead(Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 15);
+void moveBead(Board &board, Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 15);
 void removeBead(Bead &bead, unsigned int frames = 15);
 
 Board setUpBoard(bool loadPrevious = true);
 void drawBoard(sf::RenderWindow &window, Board &board);
 void setBoardSize(Board &board, sf::Vector2i SizeInPixels);
 void centerBoard(Board &board, sf::RenderWindow &window);
-void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton, showPopupFunc showPopup);
+void checkClick(Board &board, sf::Event::MouseButtonEvent mouseButton);
 bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove);
+
+void resetHighlights(Board &board);
+void showHighlight(Board &board, sf::Vector2i gridPos, sf::Vector2i move, int moveVal);
