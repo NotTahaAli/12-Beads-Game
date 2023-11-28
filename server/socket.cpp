@@ -24,9 +24,16 @@ using websocketpp::lib::placeholders::_2;
 // 2 - Victory
 // 3 - Loss
 // 4 - Returning Game State
+// 5 - Show Move
+// 6 - Perform Motion
+// 7 - Change Turn
+// 8 - Player Number
 
 // Incoming Events
 // 1 - Get Game State
+// 2 - Get Moves
+// 3 - Play Turn
+// 4 - Get Player Number
 struct gameData
 {
     websocketpp::connection_hdl redPlayer, bluePlayer;
@@ -42,26 +49,101 @@ bool connectionsEqual(websocketpp::connection_hdl a, websocketpp::connection_hdl
     return a.lock().get() == b.lock().get();
 }
 
+void ShowMoves(websocketpp::server<websocketpp::config::asio> *s, websocketpp::connection_hdl hdl, gameData game, Coordinates pos)
+{
+    int moves[3][3];
+    StringBuffer sBuff;
+    Writer<StringBuffer> writer(sBuff);
+    getMoves(game.game, pos, moves);
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (moves[i][j] == 0)
+                continue;
+            sBuff.Clear();
+            writer.Reset(sBuff);
+            writer.StartObject();
+            writer.Key("event");
+            writer.Int(5);
+            writer.Key("pos");
+            writer.StartObject();
+            writer.Key("x");
+            writer.Int(pos.x);
+            writer.Key("y");
+            writer.Int(pos.y);
+            writer.EndObject();
+            writer.Key("move");
+            writer.StartObject();
+            writer.Key("i");
+            writer.Int(i);
+            writer.Key("j");
+            writer.Int(j);
+            writer.Key("val");
+            writer.Int(moves[i][j]);
+            writer.EndObject();
+            writer.EndObject();
+            string outputJSON = sBuff.GetString();
+            s->send(hdl, outputJSON, websocketpp::frame::opcode::text);
+        }
+    }
+}
+
+void sendMotion(websocketpp::server<websocketpp::config::asio> *s, gameData game, Motion motion)
+{
+    StringBuffer sBuff;
+    Writer<StringBuffer> writer(sBuff);
+    writer.StartObject();
+    writer.Key("event");
+    writer.Int(6);
+    writer.Key("from");
+    writer.StartObject();
+    writer.Key("x");
+    writer.Int(motion.from.x);
+    writer.Key("y");
+    writer.Int(motion.from.y);
+    writer.EndObject();
+    writer.Key("to");
+    writer.StartObject();
+    writer.Key("x");
+    writer.Int(motion.to.x);
+    writer.Key("y");
+    writer.Int(motion.to.y);
+    writer.EndObject();
+    writer.EndObject();
+    string outputJSON = sBuff.GetString();
+    s->send(game.bluePlayer, outputJSON, websocketpp::frame::opcode::text);
+    s->send(game.redPlayer, outputJSON, websocketpp::frame::opcode::text);
+}
+
 void on_message(websocketpp::server<websocketpp::config::asio> *s, websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg)
 {
     Document eventData;
     eventData.Parse(msg->get_payload().c_str());
     if (eventData.IsObject() && eventData.HasMember("event") && eventData["event"].IsInt())
     {
-        gameData game;
-        for (int i = 0; i < games.size(); i++)
+        int currentPlayer;
+        websocketpp::connection_hdl other;
+        int i = 0;
+        for (i = 0; i < games.size(); i++)
         {
-            websocketpp::connection_hdl other;
             if (connectionsEqual(games[i].redPlayer, hdl))
+            {
                 other = games[i].bluePlayer;
+                currentPlayer = 1;
+            }
             else if (connectionsEqual(games[i].bluePlayer, hdl))
+            {
                 other = games[i].redPlayer;
+                currentPlayer = -1;
+            }
             else
                 continue;
             break;
         }
+        gameData &game = games[i];
         bool waitingForPartner = false;
-        if (game.bluePlayer.expired())
+        if (game.game.gameOver)
         {
             waitingForPartner = true;
         }
@@ -103,6 +185,106 @@ void on_message(websocketpp::server<websocketpp::config::asio> *s, websocketpp::
             writer.EndObject();
             string outputJSON = sBuff.GetString();
             s->send(hdl, outputJSON, websocketpp::frame::opcode::text);
+        }
+        else if (eventData["event"] == 2)
+        {
+            if (!eventData.HasMember("pos") || !eventData["pos"].IsObject())
+                return;
+            if (!eventData["pos"].HasMember("x") || !eventData["pos"]["x"].IsInt())
+                return;
+            if (!eventData["pos"].HasMember("y") || !eventData["pos"]["y"].IsInt())
+                return;
+            if (currentPlayer == game.game.turn)
+            {
+                ShowMoves(s, hdl, game, {eventData["pos"]["x"].GetInt(), eventData["pos"]["y"].GetInt()});
+            }
+        }
+        else if (eventData["event"] == 3)
+        {
+            if (!eventData.HasMember("pos") || !eventData["pos"].IsObject())
+                return;
+            if (!eventData["pos"].HasMember("x") || !eventData["pos"]["x"].IsInt())
+                return;
+            if (!eventData["pos"].HasMember("y") || !eventData["pos"]["y"].IsInt())
+                return;
+            if (!eventData.HasMember("move") || !eventData["move"].IsObject())
+                return;
+            if (!eventData["move"].HasMember("x") || !eventData["move"]["x"].IsInt())
+                return;
+            if (!eventData["move"].HasMember("y") || !eventData["move"]["y"].IsInt())
+                return;
+            if (currentPlayer != game.game.turn)
+                return;
+            turnData turndata = playTurn(game.game, {eventData["pos"]["x"].GetInt(), eventData["pos"]["y"].GetInt()}, {eventData["move"]["x"].GetInt(), eventData["move"]["y"].GetInt()});
+            if (turndata.status != 0)
+            {
+                sendMotion(s, game, turndata.move);
+                if (turndata.remove.from.x != -1)
+                {
+                    sendMotion(s, game, turndata.remove);
+                }
+
+                if (turndata.status == 1)
+                {
+                    ShowMoves(s, hdl, game, {eventData["pos"]["x"].GetInt(), eventData["pos"]["y"].GetInt()});
+                }
+                else if (turndata.status == 3)
+                {
+                    int winner = checkVictory(game.game);
+                    StringBuffer vBuff;
+                    StringBuffer lBuff;
+                    Writer<StringBuffer> writer(vBuff);
+                    writer.StartObject();
+                    writer.Key("event");
+                    writer.Int(2);
+                    writer.EndObject();
+                    writer.Flush();
+                    writer.Reset(lBuff);
+                    writer.StartObject();
+                    writer.Key("event");
+                    writer.Int(3);
+                    writer.EndObject();
+                    if (winner == 1)
+                    {
+                        s->send(game.redPlayer, vBuff.GetString(), websocketpp::frame::opcode::text);
+                        s->send(game.bluePlayer, lBuff.GetString(), websocketpp::frame::opcode::text);
+                    }
+                    else
+                    {
+                        s->send(game.bluePlayer, vBuff.GetString(), websocketpp::frame::opcode::text);
+                        s->send(game.redPlayer, lBuff.GetString(), websocketpp::frame::opcode::text);
+                    }
+                    s->close(game.redPlayer, websocketpp::close::status::normal, "Game End");
+                    s->close(game.bluePlayer, websocketpp::close::status::normal, "Game End");
+                    games.erase(games.begin() + i);
+                }
+                else
+                {
+                    StringBuffer sBuff;
+                    Writer<StringBuffer> writer(sBuff);
+                    writer.StartObject();
+                    writer.Key("event");
+                    writer.Int(7);
+                    writer.Key("turn");
+                    writer.Int(game.game.turn);
+                    writer.EndObject();
+                    string outputJSON = sBuff.GetString();
+                    s->send(game.bluePlayer, outputJSON, websocketpp::frame::opcode::text);
+                    s->send(game.redPlayer, outputJSON, websocketpp::frame::opcode::text);
+                }
+            }
+        }
+        else if (eventData["event"] == 4)
+        {
+            StringBuffer sBuff;
+            Writer<StringBuffer> writer(sBuff);
+            writer.StartObject();
+            writer.Key("event");
+            writer.Int(8);
+            writer.Key("player");
+            writer.Int(currentPlayer);
+            writer.EndObject();
+            s->send(hdl, sBuff.GetString(), websocketpp::frame::opcode::text);
         }
     }
 }
@@ -158,7 +340,6 @@ void on_open(websocketpp::server<websocketpp::config::asio> *s, websocketpp::con
 
 void on_close(websocketpp::server<websocketpp::config::asio> *s, websocketpp::connection_hdl hdl)
 {
-    gameData game;
     for (int i = 0; i < games.size(); i++)
     {
         websocketpp::connection_hdl other;
@@ -168,7 +349,7 @@ void on_close(websocketpp::server<websocketpp::config::asio> *s, websocketpp::co
             other = games[i].redPlayer;
         else
             continue;
-        if (!other.expired())
+        if (!games[i].game.gameOver && !other.expired())
         {
             StringBuffer sBuff;
             Writer<StringBuffer> writer(sBuff);
