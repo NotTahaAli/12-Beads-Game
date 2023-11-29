@@ -1,4 +1,5 @@
 #include "socketHandler.h"
+#include <SFML/Audio.hpp>
 
 #include <iostream>
 using namespace std;
@@ -12,6 +13,7 @@ sf::Font font;
 sf::Color normalColor(255, 255, 255, 255), disabledColor(0, 0, 0, 128), hoverColor(255, 255, 255, 255);
 
 sf::RenderWindow window;
+sf::Music backgroundMusic;
 
 void setIcon(string fileLocation, sf::RenderWindow &window)
 {
@@ -51,7 +53,8 @@ void cover(sf::RenderWindow &window, sf::Sprite &sprite)
     }
 }
 
-void showPopup(string message) {
+void showPopup(string message)
+{
     board.visible = true;
     board.blocked = true;
     mainMenu.visible = false;
@@ -77,14 +80,20 @@ void showMenu()
     popupMenu.blocked = true;
     onlineMenu.blocked = true;
     onlineMenu.visible = false;
-    if (!board.isOnline && board.game.saveable) {
+    if (!board.isOnline && board.game.saveable)
+    {
         saveGameState(board.game);
-        if (board.game.gameOver) {
+        if (board.game.gameOver)
+        {
             mainMenu.buttons[1].state = 1;
-        } else {
+        }
+        else
+        {
             mainMenu.buttons[1].state = 0;
         }
-    } else {
+    }
+    else
+    {
         board = setUpBoard();
         board.visible = false;
         board.blocked = true;
@@ -92,10 +101,11 @@ void showMenu()
     closeSocket();
 }
 
-void startOnlineGame() {
+void startOnlineGame()
+{
     connect(URL);
     onlineMenu.buttons[0].text.setString("Connecting...");
-    onlineMenu.buttons[0].text.setOrigin(onlineMenu.buttons[0].text.getGlobalBounds().getSize().x/2.f, 3.5*onlineMenu.buttons[0].text.getGlobalBounds().getSize().y);
+    onlineMenu.buttons[0].text.setOrigin(onlineMenu.buttons[0].text.getGlobalBounds().getSize().x / 2.f, 3.5 * onlineMenu.buttons[0].text.getGlobalBounds().getSize().y);
     onlineMenu.visible = true;
     onlineMenu.blocked = false;
     board.game.saveable = false;
@@ -306,10 +316,15 @@ int main()
     sf::Text turn;
     turn.setCharacterSize(0.05 * window.getSize().y);
     turn.setFont(font);
-    turn.setPosition(window.getSize().x/2.f, window.getSize().y);
+    turn.setPosition(window.getSize().x / 2.f, window.getSize().y);
 
     sf::Cursor cursor;
-
+    if (backgroundMusic.openFromFile("./assets/backgroundMusic.ogg"))
+    {
+        backgroundMusic.play();
+        backgroundMusic.setVolume(10.f);
+        backgroundMusic.setLoop(true);
+    }
     while (window.isOpen())
     {
         sf::Event event;
@@ -325,7 +340,8 @@ int main()
                 }
                 if (event.key.code == sf::Keyboard::Escape)
                 {
-                    if (board.game.gameOver || !board.isOnline) showMenu();
+                    if (board.game.gameOver || !board.isOnline)
+                        showMenu();
                 }
             }
             else if (event.type == sf::Event::MouseMoved)
@@ -354,9 +370,10 @@ int main()
         window.draw(rightSprite);
         drawMenu(window, mainMenu);
         drawBoard(window, board);
-        if (board.visible && !board.blocked) {
+        if (board.visible && !board.blocked)
+        {
             turn.setString((board.game.turn == 1) ? "Black Turn" : "Red Turn");
-            turn.setOrigin(turn.getGlobalBounds().getSize().x/2.f, 2*turn.getGlobalBounds().getSize().y);
+            turn.setOrigin(turn.getGlobalBounds().getSize().x / 2.f, 2 * turn.getGlobalBounds().getSize().y);
             window.draw(turn);
         }
         drawMenu(window, popupMenu);
@@ -364,6 +381,8 @@ int main()
 
         window.display();
     }
+    if (backgroundMusic.getStatus() == sf::Music::Playing)
+        backgroundMusic.stop();
     closeClient();
 
     if (!board.game.gameOver && !board.isOnline && board.game.saveable)
