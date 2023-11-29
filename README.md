@@ -33,7 +33,7 @@ g++ game.o gui.o gameHandler.o menuHandler.o socketHandler.o -o main -L "<sfml f
 ```
 ### Linux
 ```sh
-g++ common/game.cpp client/gui.cpp client/gameHandler.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system
+g++ common/game.cpp client/gui.cpp client/gameHandler.cpp client/menuHandler.cpp client/socketHandler.cpp -o main -lsfml-audio -lsfml-graphics -lsfml-window -lsfml-system
 ./main
 ```
 
