@@ -113,10 +113,13 @@ void on_message(websocketpp::client<websocketpp::config::asio_client> *c, websoc
                 if (eventData["to"]["x"] == -1)
                 {
                     removeBead(board.beads[eventData["from"]["x"].GetInt()][eventData["from"]["y"].GetInt()]);
+                    board.game.board[eventData["from"]["x"].GetInt()][eventData["from"]["y"].GetInt()] = 0;
                 }
                 else
                 {
                     moveBead(board, board.beads[eventData["from"]["x"].GetInt()][eventData["from"]["y"].GetInt()], {eventData["to"]["x"].GetInt(), eventData["to"]["y"].GetInt()});
+                    board.game.board[eventData["to"]["x"].GetInt()][eventData["to"]["y"].GetInt()] = board.game.board[eventData["from"]["x"].GetInt()][eventData["from"]["y"].GetInt()];
+                    board.game.board[eventData["from"]["x"].GetInt()][eventData["from"]["y"].GetInt()] = 0;
                 }
             }
         }

@@ -77,8 +77,18 @@ void showMenu()
     popupMenu.blocked = true;
     onlineMenu.blocked = true;
     onlineMenu.visible = false;
-    mainMenu.buttons[1].state = 1;
-    if (!board.isOnline && board.game.saveable) saveGameState(board.game);
+    if (!board.isOnline && board.game.saveable) {
+        saveGameState(board.game);
+        if (board.game.gameOver) {
+            mainMenu.buttons[1].state = 1;
+        } else {
+            mainMenu.buttons[1].state = 0;
+        }
+    } else {
+        board = setUpBoard();
+        board.visible = false;
+        board.blocked = true;
+    }
     closeSocket();
 }
 
@@ -103,6 +113,7 @@ void startNewGame()
     int minDimension = 0.9 * ((window.getSize().x < window.getSize().y) ? window.getSize().x : window.getSize().y);
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
+    board.game.saveable = true;
     mainMenu.blocked = true;
     mainMenu.visible = false;
     onlineMenu.blocked = true;
@@ -118,6 +129,7 @@ void resumeGame()
     int minDimension = 0.9 * ((window.getSize().x < window.getSize().y) ? window.getSize().x : window.getSize().y);
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
+    board.game.saveable = true;
     board.visible = true;
     board.blocked = false;
     mainMenu.blocked = true;
@@ -300,9 +312,6 @@ int main()
 
     while (window.isOpen())
     {
-        if (!board.game.gameOver) {
-            mainMenu.buttons[1].state = 0;
-        }
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -357,7 +366,7 @@ int main()
     }
     closeClient();
 
-    if (!board.game.gameOver && !board.isOnline)
+    if (!board.game.gameOver && !board.isOnline && board.game.saveable)
         saveGameState(board.game);
 
     return 0;

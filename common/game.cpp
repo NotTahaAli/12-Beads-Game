@@ -60,7 +60,6 @@ gameState initGame(bool loadPrevious)
     if (!game.saveable || game.gameOver)
     {
         game.gameOver = false;
-        game.saveable = true;
         for (int i = 0; i < 25; i++)
         {
             // 0 means Empty, 1 Means Red, -1 Means Blue

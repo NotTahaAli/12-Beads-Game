@@ -189,7 +189,7 @@ bool isHighlightValid(Board &board, sf::Vector2i gridPos)
 bool isBeadClickValid(Board &board, sf::Vector2i gridPos)
 {
     int turn = getTurn(board.game);
-    return (turn != 0 && (board.game.lastTurn.x == -1 || (board.game.lastTurn.x == gridPos.x && board.game.lastTurn.y == gridPos.y)) && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == ((board.isOnline) ? currentPlayer : turn) && (!board.isOnline || currentPlayer != 0));
+    return (turn != 0 && (board.game.lastTurn.x == -1 && board.game.lastTurn.y == -1 || (board.game.lastTurn.x == gridPos.x && board.game.lastTurn.y == gridPos.y)) && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == ((board.isOnline) ? currentPlayer : turn) && (!board.isOnline || currentPlayer != 0));
 }
 
 bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove)
