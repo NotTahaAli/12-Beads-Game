@@ -7,6 +7,7 @@ extern Menu onlineMenu;
 extern int currentPlayer;
 extern void showPopup(std::string message);
 extern void startNewGame();
+extern std::string URL;
 
 void setupClient();
 void closeClient();

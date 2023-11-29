@@ -11,8 +11,6 @@ sf::Vector2f mainMenuButtonSize, popupSize, menuButtonImgSize;
 sf::Font font;
 sf::Color normalColor(255, 255, 255, 255), disabledColor(0, 0, 0, 128), hoverColor(255, 255, 255, 255);
 
-string URL = "ws://192.168.1.16:3000";
-
 sf::RenderWindow window;
 
 void setIcon(string fileLocation, sf::RenderWindow &window)

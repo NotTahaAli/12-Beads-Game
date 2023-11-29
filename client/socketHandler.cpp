@@ -10,8 +10,11 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/document.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/istreamwrapper.h>
 
 #include "socketHandler.h"
+#include <fstream>
 
 using namespace rapidjson;
 
@@ -24,6 +27,8 @@ using websocketpp::lib::placeholders::_2;
 websocketpp::client<websocketpp::config::asio_client> client;
 websocketpp::lib::shared_ptr<websocketpp::lib::thread> conn_thread;
 websocketpp::client<websocketpp::config::asio_client>::connection_ptr conn;
+
+std::string URL;
 
 bool socketClosed = true;
 
@@ -163,6 +168,28 @@ void on_message(websocketpp::client<websocketpp::config::asio_client> *c, websoc
 
 void setupClient()
 {
+    ifstream configFile("./data/config.json");
+    Document configData;
+    if (configFile.is_open()) {
+        IStreamWrapper isw(configFile);
+        configData.ParseStream(isw);
+    }
+    configFile.close();
+    configFile.close();
+    if (configData.IsObject() && configData.HasMember("url") && configData["url"].IsString()) {
+        URL = configData["url"].GetString();
+    } else {
+        URL = "ws://localhost:3000";
+        ofstream configFile("./data/config.json");
+        OStreamWrapper osw(configFile);
+        Writer<OStreamWrapper> writer(osw);
+        writer.StartObject();
+        writer.Key("url");
+        writer.String(URL.c_str());
+        writer.EndObject();
+        configFile.close();
+    }
+
     client.clear_access_channels(websocketpp::log::alevel::all);
     client.clear_error_channels(websocketpp::log::elevel::all);
     client.init_asio();

@@ -6,5 +6,6 @@
 !*/
 !assets/**
 !README.md
+!data/config.json
 
 **/tempCodeRunnerFile.cpp
