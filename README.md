@@ -46,6 +46,12 @@ g++ -c common/game.cpp
 g++ socket.o game.o -o server -lws2_32 -lwsock32
 ```
 
+### Linux
+```sh
+g++ server/socket.cpp common/game.cpp -o Server
+./Server
+```
+
 ## Compiling consoleBased (MinGW)
 ```sh
 g++ consoleBased.cpp common/game.cpp -o consoleBased
