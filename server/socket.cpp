@@ -245,10 +245,12 @@ void on_message(websocketpp::server<websocketpp::config::asio> *s, websocketpp::
                     writer.EndObject();
                     string outputJSON = sBuff.GetString();
                     s->send(hdl, outputJSON, websocketpp::frame::opcode::text);
-                    ShowMoves(s, hdl, game, {eventData["pos"]["x"].GetInt(), eventData["pos"]["y"].GetInt()});
+                    cout << "AAAAAHAHAHAHAA ";
+                    cout << turndata.move.to.x << " ";
+                    cout << turndata.move.to.y << endl;
+                    ShowMoves(s, hdl, game, turndata.move.to);
                 }
-                
-                if (turndata.status == 3)
+                else if (turndata.status == 3)
                 {
                     int winner = checkVictory(game.game);
                     StringBuffer vBuff;
@@ -258,7 +260,6 @@ void on_message(websocketpp::server<websocketpp::config::asio> *s, websocketpp::
                     writer.Key("event");
                     writer.Int(2);
                     writer.EndObject();
-                    writer.Flush();
                     writer.Reset(lBuff);
                     writer.StartObject();
                     writer.Key("event");
