@@ -19,6 +19,9 @@ using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 
+// T-ALI
+const int port = 8254;
+
 // Out Going Events
 // 1 - Game Started
 // 2 - Victory
@@ -395,8 +398,6 @@ void on_close(websocketpp::server<websocketpp::config::asio> *s, websocketpp::co
         break;
     }
 }
-
-const int port = 3000;
 
 void init_server()
 {
