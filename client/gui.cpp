@@ -4,10 +4,10 @@
 #include <iostream>
 using namespace std;
 
-Menu mainMenu, popupMenu, onlineMenu;
+Menu mainMenu, popupMenu, onlineMenu, staticButtons;
 Board board;
 
-sf::Texture mainMenuButton, mainMenuButtonDisabled, mainMenuButtonHover, popup, backdrop, menuButtonImg;
+sf::Texture mainMenuButton, mainMenuButtonDisabled, mainMenuButtonHover, popup, backdrop, menuButtonImg, exitTexture, musicOn, musicOff;
 sf::Vector2f mainMenuButtonSize, popupSize, menuButtonImgSize;
 sf::Font font;
 sf::Color normalColor(255, 255, 255, 255), disabledColor(0, 0, 0, 128), hoverColor(255, 255, 255, 255);
@@ -146,6 +146,46 @@ void resumeGame()
     mainMenu.visible = false;
     onlineMenu.blocked = true;
     onlineMenu.visible = false;
+}
+
+void closeWindow() {
+    window.close();
+}
+
+void toggleMusic() {
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+        backgroundMusic.pause();
+        staticButtons.buttons[1].normalTexture = musicOff;
+    } else {
+        backgroundMusic.play();
+        staticButtons.buttons[1].normalTexture = musicOn;
+    }
+}
+
+void setupStaticButtons() {
+    exitTexture.loadFromFile("./assets/closeButton.png");
+    musicOn.loadFromFile("./assets/musicOnButton.png");
+    musicOff.loadFromFile("./assets/musicOffButton.png");
+    float scale = 60.f/exitTexture.getSize().x;
+    Button exit;
+    exit.normalTexture = exitTexture;
+    exit.state = 0;
+    exit.sprite.setOrigin(sf::Vector2f(exitTexture.getSize()));
+    exit.sprite.scale(scale, scale);
+    exit.sprite.setPosition(sf::Vector2f(window.getSize()) - sf::Vector2f(40,40));
+    exit.callback = closeWindow;
+    staticButtons.buttons.push_back(exit);
+    float musicScale = 60.f/musicOn.getSize().x;
+    Button music;
+    music.normalTexture = musicOn;
+    music.state = 0;
+    music.sprite.setOrigin(sf::Vector2f(musicOn.getSize()));
+    music.sprite.scale(musicScale, musicScale);
+    music.sprite.setPosition(sf::Vector2f(window.getSize()) - sf::Vector2f(40*2 + scale*exitTexture.getSize().x,40));
+    music.callback = toggleMusic;
+    staticButtons.buttons.push_back(music);
+    staticButtons.visible = true;
+    staticButtons.blocked = false;
 }
 
 void setupMainMenu()
@@ -306,6 +346,7 @@ int main()
     rightSprite.setPosition(window.getSize().x, 0);
     fillHeight(window, rightSprite);
 
+    setupStaticButtons();
     setupMainMenu();
     setupPopupMenu();
     setupOnlineMenu();
@@ -348,7 +389,7 @@ int main()
             {
 
                 cursor.loadFromSystem(sf::Cursor::Arrow);
-                if (checkHover(board, event.mouseMove) || checkHover(mainMenu, event.mouseMove) || checkHover(popupMenu, event.mouseMove) || checkHover(onlineMenu, event.mouseMove))
+                if (checkHover(board, event.mouseMove) || checkHover(mainMenu, event.mouseMove) || checkHover(popupMenu, event.mouseMove) || checkHover(onlineMenu, event.mouseMove) || checkHover(staticButtons, event.mouseMove))
                 {
                     cursor.loadFromSystem(sf::Cursor::Hand);
                 }
@@ -360,6 +401,7 @@ int main()
                 checkClick(mainMenu, event.mouseButton);
                 checkClick(popupMenu, event.mouseButton);
                 checkClick(onlineMenu, event.mouseButton);
+                checkClick(staticButtons, event.mouseButton);
             }
         }
 
@@ -378,6 +420,7 @@ int main()
         }
         drawMenu(window, popupMenu);
         drawMenu(window, onlineMenu);
+        drawMenu(window, staticButtons);
 
         window.display();
     }
