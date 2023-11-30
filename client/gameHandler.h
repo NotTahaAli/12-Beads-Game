@@ -24,6 +24,7 @@ struct Board {
     bool visible = false;
     bool blocked = true;
     bool isOnline = false;
+    sf::CircleShape playerBeadHighlight;
 };
 
 void moveBead(Board &board, Bead &bead, sf::Vector2i newGridPos, unsigned int frames = 15);

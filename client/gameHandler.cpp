@@ -16,6 +16,8 @@ sf::Vector2u boardTextureSize;
 sf::Vector2u highlightTextureSize;
 
 const float boardDivisions = 10;
+const float outlineThickness = 5;
+sf::Color highlightColor(255,255,255,128);
 
 #include <iostream>
 using namespace std;
@@ -77,6 +79,17 @@ void removeBead(Bead &bead, unsigned int frames)
     bead.speed = (bead.gridTarget - bead.gridPos) / (float)frames;
 }
 
+void showPlayerHighlight(Board &board, sf::Vector2i gridPos) {
+    board.playerBeadHighlight.setOutlineThickness(outlineThickness);
+    sf::Vector2f gridBoxSize = getGridBoxSize(board);
+    sf::Vector2f gap = gridBoxSize * (boardDivisions - 5) / 6.f + gridBoxSize;
+    sf::Vector2f boardPos = board.sprite.getPosition();
+    boardPos += gridBoxSize * (boardDivisions - 5) / 6.f;
+    board.playerBeadHighlight.setPosition({boardPos.x + gap.x * gridPos.x, boardPos.y + gap.y * gridPos.y});
+    board.playerBeadHighlight.setRadius(gridBoxSize.x/2);
+    board.playerBeadHighlight.setScale(1, gridBoxSize.x / gridBoxSize.y);
+}
+
 Board setUpBoard(bool loadPrevious)
 {
     if (boardTextureSize.x == 0)
@@ -97,6 +110,12 @@ Board setUpBoard(bool loadPrevious)
             board.beads[x][y].gridTarget = {x, y};
         }
     }
+    sf::Vector2f gridSize = getGridBoxSize(board);
+    board.playerBeadHighlight.setRadius(gridSize.x/2);
+    board.playerBeadHighlight.setScale(1, gridSize.x / gridSize.y);
+    board.playerBeadHighlight.setFillColor(sf::Color::Transparent);
+    board.playerBeadHighlight.setOutlineColor(highlightColor);
+    board.playerBeadHighlight.setOutlineThickness(0);
     updateHighlightsPosition(board);
     board.visible = true;
     board.blocked = false;
@@ -143,6 +162,7 @@ void drawBoard(sf::RenderWindow &window, Board &board)
                 window.draw(board.highlights[x][y].sprite);
         }
     }
+    window.draw(board.playerBeadHighlight);
 }
 
 void setBoardSize(Board &board, sf::Vector2i SizeInPixels)
@@ -206,6 +226,7 @@ bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove)
 
 void resetHighlights(Board &board)
 {
+    board.playerBeadHighlight.setOutlineThickness(0);
     for (int i = 0; i < 5; i++)
     {
         for (int j = 0; j < 5; j++)
@@ -237,6 +258,7 @@ void updateHighlightsPosition(Board &board)
 void showHighlight(Board &board, sf::Vector2i gridPos, sf::Vector2i move, int moveVal)
 {
     sf::Vector2f gridBoxSize = getGridBoxSize(board);
+    showPlayerHighlight(board, gridPos);
     Highlight &highlight = board.highlights[gridPos.x + moveVal * (move.x - 1)][gridPos.y + moveVal * (move.y - 1)];
     highlight.move.x = move.x;
     highlight.move.y = move.y;
