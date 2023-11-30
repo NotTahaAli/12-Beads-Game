@@ -321,7 +321,7 @@ int main()
     sf::VideoMode windowMode = sf::VideoMode::getDesktopMode();
     window.create(windowMode, "12 Beads Game", sf::Style::None);
     window.setFramerateLimit(60);
-    setIcon("./assets/redBead.png", window);
+    setIcon("./assets/redBead.ico", window);
 
     sf::Texture back;
     back.loadFromFile("./assets/screenBackground.png");

@@ -4,6 +4,7 @@
 !*.h
 !.gitignore
 !*/
+!*.rc
 !assets/**
 !README.md
 !data/config.json
