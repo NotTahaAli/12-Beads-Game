@@ -1,7 +1,9 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "../common/game.h"
 
 extern void showPopup(std::string message);
+extern sf::Music backgroundMusic;
 
 struct Bead {
     sf::Sprite sprite;

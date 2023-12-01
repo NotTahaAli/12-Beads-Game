@@ -15,6 +15,9 @@ sf::Vector2u blueBeadTextureSize;
 sf::Vector2u boardTextureSize;
 sf::Vector2u highlightTextureSize;
 
+sf::SoundBuffer captureSoundBuffer, moveSoundBuffer, playerHighlightSoundBuffer;
+sf::Sound captureSound, moveSound, playerHighlightSound;
+
 const float boardDivisions = 10;
 const float outlineThickness = 5;
 sf::Color highlightColor(255,255,255,128);
@@ -33,6 +36,12 @@ sf::Vector2f getGridBoxSize(Board &board)
 // Get textures from image files
 void initTextures()
 {
+    captureSoundBuffer.loadFromFile("assets/Capture.ogg");
+    captureSound.setBuffer(captureSoundBuffer);
+    moveSoundBuffer.loadFromFile("assets/Move.ogg");
+    moveSound.setBuffer(moveSoundBuffer);
+    playerHighlightSoundBuffer.loadFromFile("assets/Highlight.ogg");
+    playerHighlightSound.setBuffer(playerHighlightSoundBuffer);
     redBeadTexture.loadFromFile("assets/redBead.png");
     redBeadTextureSize = redBeadTexture.getSize();
     blueBeadTexture.loadFromFile("assets/blueBead.png");
@@ -67,6 +76,9 @@ Bead createBead(bool isRed)
 
 void moveBead(Board &board, Bead &bead, sf::Vector2i newGridPos, unsigned int frames)
 {
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+        moveSound.play();
+    }
     bead.gridTarget = sf::Vector2f(newGridPos);
     bead.speed = (bead.gridTarget - bead.gridPos) / (float)frames;
     board.beads[newGridPos.x][newGridPos.y] = bead;
@@ -75,11 +87,17 @@ void moveBead(Board &board, Bead &bead, sf::Vector2i newGridPos, unsigned int fr
 
 void removeBead(Bead &bead, unsigned int frames)
 {
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+        captureSound.play();
+    }
     bead.gridTarget = sf::Vector2f(bead.gridPos.x, -2);
     bead.speed = (bead.gridTarget - bead.gridPos) / (float)frames;
 }
 
 void showPlayerHighlight(Board &board, sf::Vector2i gridPos) {
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+        playerHighlightSound.play();
+    }
     board.playerBeadHighlight.setOutlineThickness(outlineThickness);
     sf::Vector2f gridBoxSize = getGridBoxSize(board);
     sf::Vector2f gap = gridBoxSize * (boardDivisions - 5) / 6.f + gridBoxSize;
