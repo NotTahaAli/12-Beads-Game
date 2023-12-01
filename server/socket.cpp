@@ -420,6 +420,11 @@ void run_server()
 int main()
 {
     init_server();
+    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+        system("ipconfig");
+    #else
+        system('echo "IP Address:" && hostname -I | awk "{print $1}"');
+    #endif
     run_server();
     return 0;
 }
