@@ -425,6 +425,7 @@ int main()
     #else
         system('echo "IP Address:" && hostname -I | awk "{print $1}"');
     #endif
+    cout << "Port: " << port << endl;
     run_server();
     return 0;
 }
