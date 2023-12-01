@@ -15,8 +15,8 @@ sf::Vector2u blueBeadTextureSize;
 sf::Vector2u boardTextureSize;
 sf::Vector2u highlightTextureSize;
 
-sf::SoundBuffer captureSoundBuffer, moveSoundBuffer, playerHighlightSoundBuffer;
-sf::Sound captureSound, moveSound, playerHighlightSound;
+sf::SoundBuffer captureSoundBuffer, moveSoundBuffer, playerHighlightSoundBuffer, defeatSoundBuffer, victorySoundBuffer;
+sf::Sound captureSound, moveSound, playerHighlightSound, defeatSound, victorySound;
 
 const float boardDivisions = 10;
 const float outlineThickness = 5;
@@ -42,6 +42,10 @@ void initTextures()
     moveSound.setBuffer(moveSoundBuffer);
     playerHighlightSoundBuffer.loadFromFile("assets/Highlight.ogg");
     playerHighlightSound.setBuffer(playerHighlightSoundBuffer);
+    defeatSoundBuffer.loadFromFile("assets/defeat.ogg");
+    defeatSound.setBuffer(defeatSoundBuffer);
+    victorySoundBuffer.loadFromFile("assets/victory.ogg");
+    victorySound.setBuffer(victorySoundBuffer);
     redBeadTexture.loadFromFile("assets/redBead.png");
     redBeadTextureSize = redBeadTexture.getSize();
     blueBeadTexture.loadFromFile("assets/blueBead.png");
@@ -329,6 +333,9 @@ void attemptTurnPlay(Board &board, sf::Vector2i gridPos)
         }
         if (tdata.status == 3)
         {
+            if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+                victorySound.play();
+            }
             showPopup((checkVictory(board.game) == 1) ? "Black Won" : "Red Won");
             board.blocked = true;
         }

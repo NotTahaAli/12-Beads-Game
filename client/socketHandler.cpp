@@ -136,12 +136,18 @@ void on_message(websocketpp::client<websocketpp::config::asio_client> *c, websoc
         {
             board.game.gameOver = true;
             board.game.turn = 0;
+            if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+                defeatSound.play();
+            }
             showPopup("You Lost!");
         }
         else if (eventData["event"] == 2)
         {
             board.game.gameOver = true;
             board.game.turn = 0;
+            if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+                victorySound.play();
+            }
             showPopup("You Won!");
         }
         else if (eventData["event"] == 1)

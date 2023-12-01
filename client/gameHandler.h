@@ -4,6 +4,7 @@
 
 extern void showPopup(std::string message);
 extern sf::Music backgroundMusic;
+extern sf::Sound victorySound, defeatSound;
 
 struct Bead {
     sf::Sprite sprite;
