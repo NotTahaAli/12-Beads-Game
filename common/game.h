@@ -33,6 +33,7 @@ struct gameState {
 
     bool gameOver = true;
     bool saveable = false;
+    bool isBot = false;
 };
 
 int getTurn(gameState &game);

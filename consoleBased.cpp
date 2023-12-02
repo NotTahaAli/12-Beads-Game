@@ -1,32 +1,37 @@
-#include "common/game.h"
+#include "client/AI.h"
 #include <iostream>
 #include <stdlib.h>
 using namespace std;
 
-void clearScreen() {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-        system("cls");
-    #else
-        system("clear");
-    #endif
+void clearScreen()
+{
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    system("cls");
+#else
+    system("clear");
+#endif
 }
 
-void pause() {
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-        system("pause");
-    #else
-        system("read -p \"Press enter to continue...\" s");
-    #endif
+void pause()
+{
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    system("pause");
+#else
+    system("read -p \"Press enter to continue...\" s");
+#endif
 }
 
 int main()
 {
     gameState game = initGame();
+    game.isBot = true;
     int turn;
     Coordinates pos, move;
     int moves[3][3];
     bool movesPossible = false;
     int turnPlayed = 0;
+    int playerTurn = 1;
+    Motion bestMove;
     while (turnPlayed != 3)
     {
         while (true)
@@ -46,17 +51,27 @@ int main()
             }
             turn = getTurn(game);
             cout << "Current Turn: " << ((turn == 0) ? "Game Ended" : ((turn == 1) ? "X" : "O")) << endl;
-            while (true)
+            bestMove = minimax(game, 8);
+            if (game.isBot && game.turn != playerTurn)
             {
-                cout << "Enter Coordinates of Bead: ";
-                cin >> pos.x >> pos.y;
-                if (cin.fail())
+                cout << "Best Move: {" << bestMove.from.x << "," << bestMove.from.y << "} {" << bestMove.to.x << "," << bestMove.to.y << "}" << endl;
+                pos = bestMove.from;
+                move = bestMove.to;
+            }
+            else
+            {
+                while (true)
                 {
-                    cin.clear();
-                    fflush(stdin);
+                    cout << "Enter Coordinates of Bead: ";
+                    cin >> pos.x >> pos.y;
+                    if (cin.fail())
+                    {
+                        cin.clear();
+                        fflush(stdin);
+                    }
+                    else
+                        break;
                 }
-                else
-                    break;
             }
             cout << "Moves: " << endl;
             getMoves(game, pos, moves);
@@ -80,18 +95,23 @@ int main()
                 pause();
                 continue;
             }
-            while (true)
+            if (!game.isBot || game.turn == playerTurn)
             {
-                cout << "Enter Move Coordinates [0-2, 0-2] ([-1 -1] for change bead) : ";
-                cin >> move.x >> move.y;
-                if (cin.fail())
+                while (true)
                 {
-                    cin.clear();
-                    fflush(stdin);
+                    cout << "Enter Move Coordinates [0-2, 0-2] ([-1 -1] for change bead) : ";
+                    cin >> move.x >> move.y;
+                    if (cin.fail())
+                    {
+                        cin.clear();
+                        fflush(stdin);
+                    }
+                    else
+                        break;
                 }
-                else
-                    break;
             }
+            else
+                pause();
             if (move.x == -1 && move.y == -1)
                 break;
             turnPlayed = playTurn(game, pos, move).status;

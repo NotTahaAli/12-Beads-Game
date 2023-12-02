@@ -116,6 +116,19 @@ void startOnlineGame()
     popupMenu.blocked = true;
 }
 
+void startNewPassAndPlayGame()
+{
+    board = setUpBoard(false);
+    int minDimension = 0.9 * ((window.getSize().x < window.getSize().y) ? window.getSize().x : window.getSize().y);
+    setBoardSize(board, {minDimension, minDimension});
+    centerBoard(board, window);
+    board.game.saveable = true;
+    mainMenu.blocked = true;
+    mainMenu.visible = false;
+    onlineMenu.blocked = true;
+    onlineMenu.visible = false;
+}
+
 void startNewGame()
 {
     board = setUpBoard(false);
@@ -123,6 +136,9 @@ void startNewGame()
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
     board.game.saveable = true;
+    board.game.isBot = true;
+    currentPlayer = -1;
+    attemptAITurnAsync(board);
     mainMenu.blocked = true;
     mainMenu.visible = false;
     onlineMenu.blocked = true;
@@ -139,6 +155,10 @@ void resumeGame()
     setBoardSize(board, {minDimension, minDimension});
     centerBoard(board, window);
     board.game.saveable = true;
+    if (board.game.isBot) {
+        currentPlayer = -1;
+        attemptAITurnAsync(board);
+    }
     board.visible = true;
     board.blocked = false;
     mainMenu.blocked = true;
@@ -200,9 +220,9 @@ void setupMainMenu()
     play.disabledColor = disabledColor;
     play.hoverColor = hoverColor;
     play.sprite.setOrigin(mainMenuButtonSize / 2.f);
-    play.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0, 1 * scale * mainMenuButtonSize.y));
+    play.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(-0.55 * scale * mainMenuButtonSize.x, 1 * scale * mainMenuButtonSize.y));
     play.sprite.setScale(scale, scale);
-    play.text.setString("Play");
+    play.text.setString("Play with AI");
     play.text.setFont(font);
     play.text.setCharacterSize(0.2 * scale * mainMenuButtonSize.y);
     play.text.setOrigin(play.text.getLocalBounds().getSize() / 2.f);
@@ -243,8 +263,25 @@ void setupMainMenu()
     online.text.setCharacterSize(0.2 * scale * mainMenuButtonSize.y);
     online.text.setOrigin(online.text.getLocalBounds().getSize() / 2.f);
     online.text.setPosition(online.sprite.getPosition());
+    Button passAndplay;
+    passAndplay.normalTexture = mainMenuButton;
+    passAndplay.disabledTexture = mainMenuButtonDisabled;
+    passAndplay.hoverTexture = mainMenuButtonHover;
+    passAndplay.normalColor = normalColor;
+    passAndplay.disabledColor = disabledColor;
+    passAndplay.hoverColor = hoverColor;
+    passAndplay.sprite.setOrigin(mainMenuButtonSize / 2.f);
+    passAndplay.sprite.setPosition(sf::Vector2f(window.getSize()) / 2.f + sf::Vector2f(0.55 * scale * mainMenuButtonSize.x, 1 * scale * mainMenuButtonSize.y));
+    passAndplay.sprite.setScale(scale, scale);
+    passAndplay.text.setString("Pass & Play");
+    passAndplay.text.setFont(font);
+    passAndplay.text.setCharacterSize(0.2 * scale * mainMenuButtonSize.y);
+    passAndplay.text.setOrigin(passAndplay.text.getLocalBounds().getSize() / 2.f);
+    passAndplay.text.setPosition(passAndplay.sprite.getPosition());
     mainMenu.buttons.push_back(online);
     mainMenu.buttons[2].callback = startOnlineGame;
+    mainMenu.buttons.push_back(passAndplay);
+    mainMenu.buttons[3].callback = startNewPassAndPlayGame;
 }
 
 void setupPopupMenu()

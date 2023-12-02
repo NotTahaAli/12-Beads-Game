@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include "../common/game.h"
+#include <thread>
+#include "AI.h"
 
 extern void showPopup(std::string message);
 extern sf::Music backgroundMusic;
@@ -42,3 +43,6 @@ bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove);
 
 void resetHighlights(Board &board);
 void showHighlight(Board &board, sf::Vector2i gridPos, sf::Vector2i move, int moveVal);
+
+void attemptAITurn(Board &board);
+void attemptAITurnAsync(Board &board);

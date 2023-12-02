@@ -2,6 +2,7 @@
 #include <cmath>
 
 int currentPlayer = 0;
+const int AIDepth = 8;
 
 // Define Texture Variables
 sf::Texture redBeadTexture;
@@ -20,7 +21,7 @@ sf::Sound captureSound, moveSound, playerHighlightSound, defeatSound, victorySou
 
 const float boardDivisions = 10;
 const float outlineThickness = 5;
-sf::Color highlightColor(255,255,255,128);
+sf::Color highlightColor(255, 255, 255, 128);
 
 #include <iostream>
 using namespace std;
@@ -80,7 +81,8 @@ Bead createBead(bool isRed)
 
 void moveBead(Board &board, Bead &bead, sf::Vector2i newGridPos, unsigned int frames)
 {
-    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing)
+    {
         moveSound.play();
     }
     bead.gridTarget = sf::Vector2f(newGridPos);
@@ -91,15 +93,18 @@ void moveBead(Board &board, Bead &bead, sf::Vector2i newGridPos, unsigned int fr
 
 void removeBead(Bead &bead, unsigned int frames)
 {
-    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing)
+    {
         captureSound.play();
     }
     bead.gridTarget = sf::Vector2f(bead.gridPos.x, -2);
     bead.speed = (bead.gridTarget - bead.gridPos) / (float)frames;
 }
 
-void showPlayerHighlight(Board &board, sf::Vector2i gridPos) {
-    if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
+void showPlayerHighlight(Board &board, sf::Vector2i gridPos)
+{
+    if (backgroundMusic.getStatus() == sf::Music::Status::Playing)
+    {
         playerHighlightSound.play();
     }
     board.playerBeadHighlight.setOutlineThickness(outlineThickness);
@@ -108,7 +113,7 @@ void showPlayerHighlight(Board &board, sf::Vector2i gridPos) {
     sf::Vector2f boardPos = board.sprite.getPosition();
     boardPos += gridBoxSize * (boardDivisions - 5) / 6.f;
     board.playerBeadHighlight.setPosition({boardPos.x + gap.x * gridPos.x, boardPos.y + gap.y * gridPos.y});
-    board.playerBeadHighlight.setRadius(gridBoxSize.x/2);
+    board.playerBeadHighlight.setRadius(gridBoxSize.x / 2);
     board.playerBeadHighlight.setScale(1, gridBoxSize.x / gridBoxSize.y);
 }
 
@@ -133,7 +138,7 @@ Board setUpBoard(bool loadPrevious)
         }
     }
     sf::Vector2f gridSize = getGridBoxSize(board);
-    board.playerBeadHighlight.setRadius(gridSize.x/2);
+    board.playerBeadHighlight.setRadius(gridSize.x / 2);
     board.playerBeadHighlight.setScale(1, gridSize.x / gridSize.y);
     board.playerBeadHighlight.setFillColor(sf::Color::Transparent);
     board.playerBeadHighlight.setOutlineColor(highlightColor);
@@ -231,7 +236,7 @@ bool isHighlightValid(Board &board, sf::Vector2i gridPos)
 bool isBeadClickValid(Board &board, sf::Vector2i gridPos)
 {
     int turn = getTurn(board.game);
-    return (turn != 0 && (board.game.lastTurn.x == -1 && board.game.lastTurn.y == -1 || (board.game.lastTurn.x == gridPos.x && board.game.lastTurn.y == gridPos.y)) && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == ((board.isOnline) ? currentPlayer : turn) && (!board.isOnline || currentPlayer != 0));
+    return (turn != 0 && (board.game.lastTurn.x == -1 && board.game.lastTurn.y == -1 || (board.game.lastTurn.x == gridPos.x && board.game.lastTurn.y == gridPos.y)) && getValueAtPosition(board.game, {gridPos.x, gridPos.y}) == ((board.isOnline || board.game.isBot) ? currentPlayer : turn) && (!(board.isOnline || board.game.isBot) || currentPlayer != 0));
 }
 
 bool checkHover(Board &board, sf::Event::MouseMoveEvent mouseMove)
@@ -312,37 +317,72 @@ void renderHighlights(Board &board, sf::Vector2i gridPos)
     }
 }
 
+void attemptAITurnAsync(Board &board)
+{
+    {
+        thread threadObj(attemptAITurn, ref(board));
+        threadObj.detach();
+    }
+}
+
+void attemptPlayMove(Board &board, Coordinates gridPos, Coordinates Move)
+{
+    turnData tdata = playTurn(board.game, gridPos, Move);
+    resetHighlights(board);
+    if (tdata.status == 0)
+    {
+        // Move Error
+        return;
+    }
+    moveBead(board, board.beads[tdata.move.from.x][tdata.move.from.y], {tdata.move.to.x, tdata.move.to.y});
+    // board.beads[tdata.move.to.x][tdata.move.to.y] = board.beads[tdata.move.from.x][tdata.move.from.y];
+    // board.beads[tdata.move.from.x][tdata.move.from.y] = Bead();
+    if (tdata.remove.from.x >= 0)
+    {
+        removeBead(board.beads[tdata.remove.from.x][tdata.remove.from.y]);
+    }
+    if (tdata.status == 3)
+    {
+        if (board.game.isBot)
+        {
+            if (backgroundMusic.getStatus() == sf::Music::Status::Playing)
+            {
+                ((checkVictory(board.game) == currentPlayer) ? victorySound : defeatSound).play();
+            }
+            showPopup((checkVictory(board.game) == currentPlayer) ? "You Won" : "You Lost");
+        }
+        else
+        {
+            if (backgroundMusic.getStatus() == sf::Music::Status::Playing)
+            {
+                victorySound.play();
+            }
+            showPopup((checkVictory(board.game) == 1) ? "Black Won" : "Red Won");
+        }
+        board.blocked = true;
+    }
+    else if (tdata.status == 1 && (!board.game.isBot || board.game.turn == currentPlayer))
+    {
+        renderHighlights(board, {tdata.move.to.x, tdata.move.to.y});
+    }
+    attemptAITurnAsync(board);
+}
+
+void attemptAITurn(Board &board)
+{
+    if (board.game.isBot && board.game.turn != currentPlayer)
+    {
+        Motion turn = minimax(board.game, AIDepth);
+        attemptPlayMove(board, turn.from, turn.to);
+    }
+}
+
 void attemptTurnPlay(Board &board, sf::Vector2i gridPos)
 {
     Highlight highlight = board.highlights[gridPos.x][gridPos.y];
     if (!board.isOnline)
     {
-        turnData tdata = playTurn(board.game, {highlight.base.x, highlight.base.y}, {highlight.move.x, highlight.move.y});
-        resetHighlights(board);
-        if (tdata.status == 0)
-        {
-            // Move Error
-            return;
-        }
-        moveBead(board, board.beads[tdata.move.from.x][tdata.move.from.y], {tdata.move.to.x, tdata.move.to.y});
-        // board.beads[tdata.move.to.x][tdata.move.to.y] = board.beads[tdata.move.from.x][tdata.move.from.y];
-        // board.beads[tdata.move.from.x][tdata.move.from.y] = Bead();
-        if (tdata.remove.from.x >= 0)
-        {
-            removeBead(board.beads[tdata.remove.from.x][tdata.remove.from.y]);
-        }
-        if (tdata.status == 3)
-        {
-            if (backgroundMusic.getStatus() == sf::Music::Status::Playing) {
-                victorySound.play();
-            }
-            showPopup((checkVictory(board.game) == 1) ? "Black Won" : "Red Won");
-            board.blocked = true;
-        }
-        else if (tdata.status == 1)
-        {
-            renderHighlights(board, {tdata.move.to.x, tdata.move.to.y});
-        }
+        attemptPlayMove(board, {highlight.base.x, highlight.base.y}, {highlight.move.x, highlight.move.y});
     }
     else
     {

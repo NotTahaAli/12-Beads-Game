@@ -19,8 +19,8 @@ del main.exe *.o *.res
 windres icon.rc -O coff icon.res
 g++ -I "<sfml folder>/include" -c client/gui.cpp -c client/gameHandler.cpp -c client/menuHandler.cpp -D SFML_STATIC
 g++ -I "<sfml folder>/include" -I "<Home Folder with websocketpp and mingw-threads>" -I "<asio folder>/include" -I "<rapidjson folder>/include" -c client/socketHandler.cpp -D SFML_STATIC
-g++ -c common/game.cpp
-g++ game.o gui.o gameHandler.o menuHandler.o socketHandler.o icon.res -o main -static -L "<sfml folder>/lib" -lsfml-audio-s -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopenal32 -lflac -lvorbisenc -lvorbisfile -lvorbis -logg -lopengl32 -lfreetype -lwinmm -lgdi32 -lwsock32 -lws2_32
+g++ -c common/game.cpp client/AI.cpp
+g++ game.o AI.cpp gui.o gameHandler.o menuHandler.o socketHandler.o icon.res -o main -static -L "<sfml folder>/lib" -lsfml-audio-s -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopenal32 -lflac -lvorbisenc -lvorbisfile -lvorbis -logg -lopengl32 -lfreetype -lwinmm -lgdi32 -lwsock32 -lws2_32
 ./main
 ```
 ### Windows (Dynamic Linking)
@@ -56,6 +56,6 @@ g++ server/socket.cpp common/game.cpp -o Server
 
 ## Compiling consoleBased (MinGW)
 ```sh
-g++ consoleBased.cpp common/game.cpp -o consoleBased
+g++ consoleBased.cpp common/game.cpp client/AI.cpp -o consoleBased
 ./consoleBased
 ```
