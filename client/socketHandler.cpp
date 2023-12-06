@@ -152,7 +152,7 @@ void on_message(websocketpp::client<websocketpp::config::asio_client> *c, websoc
         }
         else if (eventData["event"] == 1)
         {
-            startNewGame();
+            startNewPassAndPlayGame();
             board.isOnline = true;
             if (eventData.HasMember("gameOver") && eventData["gameOver"].IsBool())
                 board.game.gameOver = eventData["gameOver"].GetBool();

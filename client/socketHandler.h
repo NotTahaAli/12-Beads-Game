@@ -6,7 +6,7 @@ extern Board board;
 extern Menu onlineMenu;
 extern int currentPlayer;
 extern void showPopup(std::string message);
-extern void startNewGame();
+extern void startNewPassAndPlayGame();
 extern std::string URL;
 
 void setupClient();
