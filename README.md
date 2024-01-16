@@ -1,6 +1,7 @@
 # 12 Bead
+![Static Badge](https://img.shields.io/badge/Download-Windows_64_Bit-blue?style=for-the-badge&link=https%3A%2F%2Fgithub.com%2Fm-tahaali%2F12-Beads-Game%2Freleases%2Ftag%2Fv1.0.0)
 
-## Prerequisites
+## Prerequisites for Compiling
 ### [SFML](https://www.sfml-dev.org/)
 - Available in package managers
 - Add SFML bin Folder in System Path (or but contents in folder with exe file.) (For Windows Only)
